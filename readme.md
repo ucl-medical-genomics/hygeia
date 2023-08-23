@@ -24,13 +24,15 @@ pip install -r requirements.txt
 
 #### Data-Preprocessing
 
-The following script generates for each chromosome - a text file containing (i) CpG positions, (ii) methylated reads control group, (iii) methylated reads case group, (iv) total reads control group, and (v) total reads case group.
+The following script (in DataProcessing) generates for each chromosome - a text file containing (i) CpG positions, (ii) methylated reads control group, (iii) methylated reads case group, (iv) total reads control group, and (v) total reads case group.
 These are the input count files for Hygeia. In this script, we use all CpG sites from the reference genome.
 We use the methylation data generated from gemBS.
 However, Hygeia should work as long as the generated files are indexed at the same CpG positions (possibly with zero methylated or total reads).
 
+To run the below command without command line arguments, unzip the input file (containing gemBS data of the newborn and adult, parameter estimates of the single group model for selected chromosomes and all CpG sites from the reference genome) and save it under ./test_data
+
 ```bash
-python DataProcessing/preprocess_data.py \
+python preprocess_data.py \
   -cpg_file_path example_data/ \
   -output_path example_data/output \
   -case_data_path \
@@ -52,13 +54,13 @@ Here are further details on each argument:
 
 #### Case-Control Model Inference
 
-The following script generates for a given chromosome the full Hygeia outputs.
+The following script (in CaseControlScripts) generates for a given chromosome the full Hygeia outputs.
 This includes the particles (duration and METEOR/regime) for the backward simulation.
 The results can be seen as one Monte Carlo sample (specified by the seed flag) of the algorithm.
 These outputs can be used to test/discover for DMPs/DMRs with further scripts.
 
 ```bash
-python CaseControlScripts/run_inference_two_groups.py \
+python run_inference_two_groups.py \
   -results_dir \
   -data_dir \
   -single_group_dir \

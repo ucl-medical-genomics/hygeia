@@ -44,7 +44,7 @@ flags.DEFINE_bool("multinomial",
                       default=False,
                       help="multinomial or residual resampling")
 flags.DEFINE_integer("chrom",
-                      default=21,
+                      default=22,
                       help="which chormosome to analyse")
 flags.DEFINE_string(
     'results_dir',
