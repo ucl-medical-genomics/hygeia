@@ -1,55 +1,80 @@
 ################################################################################
 #
-# R script for specifying some of the vector- and matrix-valued 
-# model parameters in R which are then automatically written  
+# R script for specifying some of the vector- and matrix-valued
+# model parameters in R which are then automatically written
 # into the right format of to CSV files for use within the data-simulation or
 # inference algorithms. This avoids having to pass vector- or matrix valued
 # argument via the command line.
 #
 ################################################################################
 
-library("argparser")
-parser <- arg_parser(description = "---")
+library("optparse")
+parser <- OptionParser(description = "---")
 
-parser <- add_argument(
-  parser, 
-  "rootdir", 
-  type = "character", 
-  help = "root directory, i.e. the directory which holds this script file"
-)
-parser <- add_argument(
-  parser, 
-  "inputdir", 
-  type = "character", 
-  help = "folder from which some of the known/fixed parameter values will be read"
-)
-args <- parse_args(parser)
-setwd(args$rootdir)
-source(file = file.path(getwd(), "r", "input_output_functions.R"))
+parser <- add_option(parser, "--mu", default = "0.99,0.01,0.80,0.20,0.50,0.50",
+                     help = "TODO: explain mu parameter [default: %default]")
+parser <- add_option(parser, "--sigma", default = "0.05,0.05,0.20,0.20,0.20,0.2886751",
+                     help = "TODO: explain sigma parameter [default: %default]")
+parser <- add_option(parser, "--u", default = 2,
+                     help = "TODO: explain u parameter [default: %default]", type="integer")
+parser <- add_option(parser, "--kappa", default = "2,2,2,2,2,2",
+                     help = "TODO: explain kappa parameter [default: %default]")
+parser <- add_option(parser, "--omega", default = "0.995,0.975,0.950,0.925,0.900,0.900",
+                     help = "Success-probability parameters of the regime-specific negative-binomial distributions governing the function h() which determines the change-point probabilities [default: %default]")
 
-mu    <- c(0.99, 0.01, 0.80, 0.20, 0.50, 0.50)
+parser <- add_option(parser, "--mu_csv_file",
+                     help = "Output CSV file containing parameter vector mu (see documentation)")
+parser <- add_option(parser, "--sigma_csv_file",
+                     help = "Output CSV file containing parameter vector sigma (see documentation)")
+parser <- add_option(parser, "--omega_csv_file",
+                     help = "Output CSV file containing parameter vector omega (see documentation)")
+parser <- add_option(parser, "--kappa_csv_file",
+                     help = "Output CSV file containing parameter vector kappa (see documentation)")
+parser <- add_option(parser, "--u_csv_file",
+                     help = "Output CSV file containing parameter vector u (see documentation)")
+parser <- add_option(parser, "--p_csv_file",
+                     help = "Output CSV file containing parameter vector p (see documentation)")
 
+parser <- add_option(parser, "--root_dir", default = './src/r',
+                     help = "root directory, i.e. the directory which holds this script file")
+
+cmd_args <- parse_args(parser)
+
+source(file = file.path(cmd_args$root_dir, "input_output_functions.R"), chdir = TRUE)
+
+if (is.na(cmd_args$u)) {
+  stop("Please specify the u parameter via --u")
+}
+if (is.na(cmd_args$kappa)) {
+  stop("Please specify the kappa parameter via --kappa")
+}
+if (is.na(cmd_args$omega)) {
+  stop("Please specify the omega parameter via --omega")
+}
+if (is.na(cmd_args$sigma)) {
+  stop("Please specify the sigma parameter via --sigma")
+}
+if (is.na(cmd_args$mu)) {
+  stop("Please specify the mu parameter via --mu")
+}
+
+u <- cmd_args$u
+kappa <- as.numeric(unlist(strsplit(cmd_args$kappa, ",")))
+omega <- as.numeric(unlist(strsplit(cmd_args$omega, ",")))
+sigma <- as.numeric(unlist(strsplit(cmd_args$sigma, ",")))
 sigma <- c(0.05, 0.05, 0.20, 0.20, 0.20, 1 / sqrt(12))
-
-u <- 2
-
-kappa  <- rep(2, times = 6) # suitable default
+mu <- as.numeric(unlist(strsplit(cmd_args$mu, ",")))
 
 # transition matrix for the regimes:
 p <- matrix(
   c(rep(c(0, rep(1 / 5, times = length(mu))), times = length(mu) - 1), 0),
   nrow = length(mu),
   ncol = length(mu)
-) 
+)
 
-# Success-probability parameters of the regime-specific negative-binomial 
-# distributions governing the function h() which determines the 
-# change-point probabilities:
-omega <- c(0.995, 0.975, 0.950, 0.925, 0.900, 0.900) 
-
-mu %>% write_mu_to_csv_file(dir = args$inputdir)
-sigma %>% write_sigma_to_csv_file(dir = args$inputdir)
-kappa %>% write_kappa_to_csv_file(dir = args$inputdir)
-omega %>% write_omega_to_csv_file(dir = args$inputdir)
-u %>% write_u_to_csv_file(dir = args$inputdir)
-p %>% write_p_to_csv_file(dir = args$inputdir)
+mu %>% write_mu_to_csv_file(file = cmd_args$mu_csv_file)
+sigma %>% write_sigma_to_csv_file(file = cmd_args$sigma_csv_file)
+kappa %>% write_kappa_to_csv_file(file = cmd_args$kappa_csv_file)
+omega %>% write_omega_to_csv_file(file = cmd_args$omega_csv_file)
+u %>% write_u_to_csv_file(file = cmd_args$u_csv_file)
+p %>% write_p_to_csv_file(file = cmd_args$p_csv_file)

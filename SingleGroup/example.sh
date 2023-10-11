@@ -1,5 +1,7 @@
+#!/bin/bash
+
 ##########################################################
-# 
+#
 # Runs the single-group algorithm on a data set simulated
 # from the model or on a user-provided (e.g., real) data
 # set
@@ -15,27 +17,27 @@
 
 # 1. Edit this path so that it is the directory in which the present file is located:
 
-rootdir="/home/axel/Dropbox/methylation/single-group_code_modified_for_ismail/Hygeia-master/SingleGroupScripts"
+rootdir="${PWD}/src"
 
 # 2. If desired, change the following paths which give the directories
 # from which the algorithm reads its input (such as the data) and to which
 # the algorithm writes its output. You can just leave these lines unaltered.
 # If the folders below do not exist, they will be automatically created later.
 
-inputdir="$rootdir/example_data/input"
-outputdir="$rootdir/example_data/output"
+inputdir="$rootdir/../example_data/input"
+outputdir="$rootdir/../example_data/output"
 
-# 3. By default, this script will simulate data from the model. If you want to 
+# 3. By default, this script will simulate data from the model. If you want to
 # use your own data:
 #
-# a. Comment out all the lines in the "---" delineated box below as these 
+# a. Comment out all the lines in the "---" delineated box below as these
 # simulate a suitable data set from the model.
 #
-# b. Ensure that your own data are located in inputdir and are stored in the 
+# b. Ensure that your own data are located in inputdir and are stored in the
 # following three CSV files (the names also need to match exactly):
 # (1) genomic_positions.csv: holds the genomic positions of the CpG sites (in ascending order) in the first column, e.g., cell (2, 1) holds the genomic position of the second CpG site
-# (2) n_total_reads.csv: holds the total number of reads for each CpG site (rows) and each sample (columns), e.g. the number in cell (2, 3) is the total number of reads at CpG Site 2 in Sample 3 
-# (3) n_methlyated_reads.csv: holds the number of methylated reads for each CpG site (rows) and each sample (columns), e.g. the number in cell (2, 3) is the number of methylated reads at CpG Site 2 in Sample 3 
+# (2) n_total_reads.csv: holds the total number of reads for each CpG site (rows) and each sample (columns), e.g. the number in cell (2, 3) is the total number of reads at CpG Site 2 in Sample 3
+# (3) n_methlyated_reads.csv: holds the number of methylated reads for each CpG site (rows) and each sample (columns), e.g. the number in cell (2, 3) is the number of methylated reads at CpG Site 2 in Sample 3
 
 # 4. Set the following argument, which determines whether some model parameters
 # (the regime-transition matrix P and the sojourn-time parameters omega) will
@@ -45,18 +47,18 @@ estimate_parameters=true # should the model parameters be estimated? Otherwise, 
 
 # 5. Edit the file specify_parameters.R which specifies the model parameters
 # used by the algorithm. In particular, adjust the vectors mu and sigma to your
-# needs as these determine the regime configurations. If you want a different 
-# number of regimes, n, then all the vectors that are currently of length 6, 
-# must be of length n (and p must be an (n, n) row-stochastic matrix with 
+# needs as these determine the regime configurations. If you want a different
+# number of regimes, n, then all the vectors that are currently of length 6,
+# must be of length n (and p must be an (n, n) row-stochastic matrix with
 # zeros on its diagonal).
 #
 # NOTE: If you have set "estimate_parameters=true" above, then the
-# algorithm will not make use of the parameters omega and p specified in 
+# algorithm will not make use of the parameters omega and p specified in
 # specify_parameters.R as these parameters will then instead be estimated from
 # the data. If you have set "estimate_parameters=false" above, then
 # all parameter values will be taken from specify_parameters.R.
 
-# 6. Specify the following optional arguments (there are other optional 
+# 6. Specify the following optional arguments (there are other optional
 # arguments but only those listed here will be relevant to most users):
 
 n_particles=300 # the number of particles; larger values increase computational cost but improve accuracy (default: 250)
