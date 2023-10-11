@@ -14,23 +14,23 @@ parser <- OptionParser(description = "---")
 parser <- add_option(
   parser, "--mu", 
   default = "0.99,0.01,0.80,0.20,0.50,0.50",
-  help = "TODO: explain mu parameter [default: %default]"
+  help = "The means of the R beta distributions which govern the R distinct methylation regimes. Values must be between 0 and 1. [default: %default]"
 )
 parser <- add_option(
   parser, "--sigma", 
   default = "0.05,0.05,0.20,0.20,0.20,0.2886751",
-  help = "TODO: explain sigma parameter [default: %default]"
+  help = "The standard deviations of the R beta distributions which govern the R distinct methylation regimes. Note that for each regime, the values of mu and sigma must satisfy sigma^2 < mu * (1 - mu) [default: %default]"
 )
 parser <- add_option(
   parser, "--u", 
   default = 2,
-  help = "TODO: explain u parameter [default: %default]", 
+  help = "The minimum distance (measured as number of CpG sites) between change points [default: %default]", 
   type="integer"
 )
 parser <- add_option(
   parser, "--kappa", 
   default = "2,2,2,2,2,2",
-  help = "TODO: explain kappa parameter [default: %default]"
+  help = "Number-of-sucesses parameters of the regime-specific negative-binomial distributions governing the function h() which determines the change-point probabilities [default: %default]"
 )
 parser <- add_option(
   parser, "--omega", 
@@ -91,7 +91,7 @@ u <- cmd_args$u
 kappa <- as.numeric(unlist(strsplit(cmd_args$kappa, ",")))
 omega <- as.numeric(unlist(strsplit(cmd_args$omega, ",")))
 sigma <- as.numeric(unlist(strsplit(cmd_args$sigma, ",")))
-sigma <- c(0.05, 0.05, 0.20, 0.20, 0.20, 1 / sqrt(12))
+# sigma <- c(0.05, 0.05, 0.20, 0.20, 0.20, 1 / sqrt(12))
 mu <- as.numeric(unlist(strsplit(cmd_args$mu, ",")))
 
 # transition matrix for the regimes:
