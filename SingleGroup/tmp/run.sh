@@ -22,7 +22,9 @@ Rscript simulate_data.R \
   --genomic_positions_csv_file ./example2/simulated_data/genomic_positions.csv \
   --n_total_reads_csv_file ./example2/simulated_data/n_total_reads.csv \
   --number_of_samples 2 \
-  --number_of_cpg_sites 250
+  --number_of_cpg_sites 250 \
+  --randomise_rng_seed true \
+  --rng_seed 73
 
 mkdir ./example2/final_output
 Rscript estimate_parameters_and_regimes.R \
@@ -38,4 +40,6 @@ Rscript estimate_parameters_and_regimes.R \
   --regime_probabilities_csv_file ./example2/final_output/regimes.csv \
   --theta_trace_csv_file ./example2/final_output/theta_trace.csv \
   --estimate_regime_probabilities \
-  --estimate_parameters
+  --estimate_parameters \
+  --randomise_rng_seed true \
+  --rng_seed 73
