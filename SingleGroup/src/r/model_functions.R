@@ -109,68 +109,6 @@ convert_theta_to_model_parameters <- function(vartheta, theta) {
     return(list(p = p, p_non_diag = p_non_diag, omega = omega, kappa = kappa))
   }
 }
-# # Takes the transformed model parameters as an input and
-# # returns a vector whose elements are the elements of the transition matrix P
-# # (except for the diagonal elements) and of the vector omega
-# # (and of kappa, if kappa is estimated).
-# convert_theta_to_param <- function(vartheta, theta) {
-#   aux <- convert_theta_to_model_parameters(vartheta, theta)
-#   is_kappa_fixed <- get_is_kappa_fixed(vartheta)
-#   if (is_kappa_fixed) {
-#     param <- c(aux$p_non_diag, aux$omega)
-#   } else {
-#     param <- c(aux$p_non_diag, aux$omega, aux$kappa)
-#   }
-#   return(param)
-# }
-# Simulates data (the number of methylated reads and the change points
-# and associated regimes) from the model for a given set/number of CpG sites
-# and a given total number of reads at each CpG site and given number of
-# samples; writes the output to CSV files.
-# simulate_data_given_total_reads <- function(
-#   outputdir,
-#   vartheta,
-#   theta,
-#   genomic_positions,
-#   n_total_reads
-# ) {
-#
-#   n_samples      <- dim(n_total_reads)[1]
-#   n_cpg_sites <- dim(n_total_reads)[2]
-#
-#   aux <- simulateDataCpp(
-#     n_cpg_sites,
-#     vartheta,
-#     theta,
-#     genomic_positions,
-#     n_total_reads
-#   )
-#
-#   matrix(
-#     unlist(aux$latentVariables),
-#     nrow = 2,
-#     ncol = n_cpg_sites
-#   ) %>%
-#     .[2, ] %>%
-#     write_regimes_to_csv_file(dir = outputdir)
-#
-#   matrix(
-#     unlist(aux$nMethylatedReads),
-#     nrow = n_samples,
-#     ncol = n_cpg_sites
-#   ) %>%
-#     write_n_methylated_reads_to_csv_file(dir = outputdir)
-#
-#
-#   return(0)
-#   # return(
-#   #   list(
-#   #     n_methylated_reads = n_methylated_reads,
-#   #     latent_variables = latent_variables,
-#   #     regimes = regimes
-#   #   )
-#   # )
-# }
 # Simulates data (the total number of reads, the number of methylated reads,
 # the change points and the associated regimes) from the model for a given
 # number of CpG sites and given number of samples; writes the output to
@@ -188,7 +126,9 @@ simulate_data <- function(
   u,
   n_samples, # the number of (biological) samples
   n_cpg_sites, # number of observations/time steps/CpG sites
-  lambda # mean number of reads per CpG site/sample
+  lambda, # mean number of reads per CpG site/sample
+  randomise_rng_seed, # should the seed for the random number generator be randomised?
+  rng_seed # the seed of the random number generator
 ) {
 
   aux <- get_known_parameters(
@@ -226,7 +166,9 @@ simulate_data <- function(
     vartheta,
     theta,
     genomic_positions,
-    n_total_reads
+    n_total_reads,
+    randomise_rng_seed,
+    rng_seed
   )
 
   matrix(

@@ -4,9 +4,6 @@
 /// This file contains the functions for implementing 
 
 
-//////////////// NOTE: do we really need a class for this?
-
-
 #ifndef __ONLINECOMBINEDINFERENCE_H
 #define __ONLINECOMBINEDINFERENCE_H
 

@@ -135,14 +135,6 @@ parser <- add_argument(
   help = "exponent governing the learning-rate decay",
   default = 0.01
 )
-
-parser <- add_argument(
-  parser,
-  "--root_dir",
-  default = './src/r',
-  help = "root directory for the src folder containing the R scripts"
-)
-
 # ---------------------------------------------------------------------------- #
 # That is, write
 # a = learning_rate_factor
@@ -155,7 +147,34 @@ parser <- add_argument(
 # $a / i^b$, where $i = t/c$.
 # ---------------------------------------------------------------------------- #
 
+parser <- add_argument(
+  parser,
+  "--root_dir",
+  default = './src/r',
+  help = "root directory for the src folder containing the R scripts"
+)
+
+parser <- add_argument(
+  parser,
+  "--randomise_rng_seed",
+  type = "boolean",
+  help = "should the seed for the random number generator be randomised?",
+  default = TRUE
+)
+parser <- add_argument(
+  parser,
+  "--rng_seed",
+  type = "integer",
+  help = "seed for the random number generator (only used if randomise_rng_seed is FALSE)",
+  default = -73
+)
+
 cmd_args <- parse_args(parser)
+
+if (!cmd_args$randomise_rng_seed) {
+  set.seed(cmd_args$rng_seed)
+}
+
 source(file = file.path(cmd_args$root_dir, "build.R"), chdir = TRUE)
 source(file = file.path(cmd_args$root_dir, "input_output_functions.R"), chdir = TRUE)
 source(file = file.path(cmd_args$root_dir, "model_functions.R"), chdir = TRUE)
@@ -187,7 +206,11 @@ vartheta    <- aux$vartheta # some other known parameters
 dim_theta   <- aux$dim_theta # number of (transformed) unknown parameters
 
 if (cmd_args$estimate_parameters) { # i.e., if we need to estimate the model parameters from the data
-  theta_init <- sampleFromParameterPriorCpp(vartheta) # draw initial values for theta IID from a standard Gaussian
+  theta_init <- sampleFromParameterPriorCpp(
+    vartheta,
+    cmd_args$randomise_rng_seed, # should the seed for the random number generator be randomised?
+    cmd_args$rng_seed # the seed of the random number generator (if not randomised)
+  )
 } else { # i.e., if we already know the model parameters
   theta_init <- convert_model_parameters_to_theta(
     vartheta = vartheta,
@@ -223,7 +246,9 @@ aux <- runOnlineCombinedInferenceCpp(
   cmd_args$use_adam, # should the ADAM optimiser be used (otherwise it is plain stochastic gradient ascent)
   cmd_args$n_steps_without_parameter_update, # number of SMC steps without parameter updates
   cmd_args$learning_rate_exponent, # the exponent governing the learning-rate decay
-  cmd_args$learning_rate_factor # the factor governing the learning-rate decay
+  cmd_args$learning_rate_factor, # the factor governing the learning-rate decay
+  cmd_args$randomise_rng_seed, # should the seed for the random number generator be randomised?
+  cmd_args$rng_seed # the seed of the random number generator (if not randomised)
 )
 
 

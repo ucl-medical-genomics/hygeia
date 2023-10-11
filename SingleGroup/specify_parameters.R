@@ -11,32 +11,61 @@
 library("optparse")
 parser <- OptionParser(description = "---")
 
-parser <- add_option(parser, "--mu", default = "0.99,0.01,0.80,0.20,0.50,0.50",
-                     help = "TODO: explain mu parameter [default: %default]")
-parser <- add_option(parser, "--sigma", default = "0.05,0.05,0.20,0.20,0.20,0.2886751",
-                     help = "TODO: explain sigma parameter [default: %default]")
-parser <- add_option(parser, "--u", default = 2,
-                     help = "TODO: explain u parameter [default: %default]", type="integer")
-parser <- add_option(parser, "--kappa", default = "2,2,2,2,2,2",
-                     help = "TODO: explain kappa parameter [default: %default]")
-parser <- add_option(parser, "--omega", default = "0.995,0.975,0.950,0.925,0.900,0.900",
-                     help = "Success-probability parameters of the regime-specific negative-binomial distributions governing the function h() which determines the change-point probabilities [default: %default]")
-
-parser <- add_option(parser, "--mu_csv_file",
-                     help = "Output CSV file containing parameter vector mu (see documentation)")
-parser <- add_option(parser, "--sigma_csv_file",
-                     help = "Output CSV file containing parameter vector sigma (see documentation)")
-parser <- add_option(parser, "--omega_csv_file",
-                     help = "Output CSV file containing parameter vector omega (see documentation)")
-parser <- add_option(parser, "--kappa_csv_file",
-                     help = "Output CSV file containing parameter vector kappa (see documentation)")
-parser <- add_option(parser, "--u_csv_file",
-                     help = "Output CSV file containing parameter vector u (see documentation)")
-parser <- add_option(parser, "--p_csv_file",
-                     help = "Output CSV file containing parameter vector p (see documentation)")
-
-parser <- add_option(parser, "--root_dir", default = './src/r',
-                     help = "root directory, i.e. the directory which holds this script file")
+parser <- add_option(
+  parser, "--mu", 
+  default = "0.99,0.01,0.80,0.20,0.50,0.50",
+  help = "TODO: explain mu parameter [default: %default]"
+)
+parser <- add_option(
+  parser, "--sigma", 
+  default = "0.05,0.05,0.20,0.20,0.20,0.2886751",
+  help = "TODO: explain sigma parameter [default: %default]"
+)
+parser <- add_option(
+  parser, "--u", 
+  default = 2,
+  help = "TODO: explain u parameter [default: %default]", 
+  type="integer"
+)
+parser <- add_option(
+  parser, "--kappa", 
+  default = "2,2,2,2,2,2",
+  help = "TODO: explain kappa parameter [default: %default]"
+)
+parser <- add_option(
+  parser, "--omega", 
+  default = "0.995,0.975,0.950,0.925,0.900,0.900",
+  help = "Success-probability parameters of the regime-specific negative-binomial distributions governing the function h() which determines the change-point probabilities [default: %default]"
+)
+parser <- add_option(
+  parser, "--mu_csv_file",
+  help = "Output CSV file containing parameter vector mu (see documentation)"
+)
+parser <- add_option(
+  parser, "--sigma_csv_file",
+  help = "Output CSV file containing parameter vector sigma (see documentation)"
+)
+parser <- add_option(
+  parser, "--omega_csv_file",
+  help = "Output CSV file containing parameter vector omega (see documentation)"
+)
+parser <- add_option(
+  parser, "--kappa_csv_file",
+  help = "Output CSV file containing parameter vector kappa (see documentation)"
+)
+parser <- add_option(
+  parser, "--u_csv_file",
+  help = "Output CSV file containing parameter vector u (see documentation)"
+)
+parser <- add_option(
+  parser, "--p_csv_file",
+  help = "Output CSV file containing parameter vector p (see documentation)"
+)
+parser <- add_option(
+  parser, "--root_dir", 
+  default = './src/r',
+  help = "root directory, i.e. the directory which holds this script file"
+)
 
 cmd_args <- parse_args(parser)
 

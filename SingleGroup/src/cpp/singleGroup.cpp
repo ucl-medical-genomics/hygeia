@@ -17,10 +17,18 @@
 // [[Rcpp::export]]
 arma::colvec sampleFromParameterPriorCpp
 (
-  const arma::colvec& vartheta // hyperparameters
+  const arma::colvec& vartheta, // hyperparameters
+  const bool randomiseRngSeed,  // should the random-number-generator seed be randomised?
+  const int rngSeed             // random-number-generator seed (only used if randomiseRngSeed is set to false)
 )
 { 
   Rng rng;
+  if (!randomiseRngSeed)
+  {
+    rng.setSeed(rngSeed);
+    // arma::arma_rng::set_seed(rngSeed);
+  }
+
   Model<ModelParameters, LatentVariable, Covariate, Observation> model(rng);
   model.setKnownParameters(vartheta);;
   return model.sampleFromParameterPrior();
@@ -36,11 +44,18 @@ Rcpp::List simulateDataCpp
   const arma::colvec& vartheta, // hyperparameters 
   const arma::colvec& theta, // parameters
   const arma::uvec& genomicPositions,        // the genomic positions of each CpG site
-  const arma::umat& nTotalReads              // the no of (methylated + unmethylated) reads for each sample at each CpG site
+  const arma::umat& nTotalReads,             // the no of (methylated + unmethylated) reads for each sample at each CpG site
+  const bool randomiseRngSeed,  // should the random-number-generator seed be randomised?
+  const int rngSeed             // random-number-generator seed (only used if randomiseRngSeed is set to false)
 )
 {
-//   std::cout << "START: simulateDataCpp()" << std::endl;
   Rng rng;
+  if (!randomiseRngSeed)
+  {
+    rng.setSeed(rngSeed);
+    // arma::arma_rng::set_seed(rngSeed);
+  }
+
   Model<ModelParameters, LatentVariable, Covariate, Observation> model(rng);
   model.setKnownParameters(vartheta);
   model.setUnknownParameters(theta);
@@ -77,15 +92,25 @@ Rcpp::List runOnlineCombinedInferenceCpp
   const bool useAdam,                        // should the ADAM optimiser be used (otherwise it is plain stochastic gradient ascent)
   const unsigned int nStepsWithoutParameterUpdate, // number of SMC steps without parameter updates
   const double learningRateExponent,         // the exponent governing the learning-rate decay
-  const double learningRateFactor            // the factor governing the learning-rate decay
+  const double learningRateFactor,           // the factor governing the learning-rate decay
+  const bool randomiseRngSeed,  // should the random-number-generator seed be randomised?
+  const int rngSeed             // random-number-generator seed (only used if randomiseRngSeed is set to false)
 )
 {
+
 
   // Starting the timer:
   clock_t t1,t2; // timing
   t1 = clock(); // start timer
 
   Rng rng;
+  if (!randomiseRngSeed)
+  {
+    rng.setSeed(rngSeed);
+    // arma::arma_rng::set_seed(rngSeed);
+  }
+
+
 
   /////////////////////////////////////////////////////////////////////////////
   // Model class.
@@ -193,11 +218,17 @@ Rcpp::List approximateLogNormalisingConstantCpp
   const arma::umat& nMethylatedReads,        // the no of methylated reads for each sample at each CpG site
   const unsigned int nParticlesMax,          // maximum number particles used by the SMC algorithm
   const unsigned int smcProposalType,        // type of proposal (kernel) for the latent states
-  const unsigned int smcResampleType         // type of resampling scheme to use
+  const unsigned int smcResampleType,        // type of resampling scheme to use
+  const bool randomiseRngSeed,               // should the random-number-generator seed be randomised?
+  const int rngSeed                          // random-number-generator seed (only used if randomiseRngSeed is set to false)
 )
 {
-  
   Rng rng;
+  if (!randomiseRngSeed)
+  {
+    rng.setSeed(rngSeed);
+    // arma::arma_rng::set_seed(rngSeed);
+  }
 
   /////////////////////////////////////////////////////////////////////////////
   // Model class.

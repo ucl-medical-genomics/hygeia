@@ -85,8 +85,26 @@ parser <- add_argument(
   default = './src/r',
   help = "root directory for the src folder containing the R scripts"
 )
+parser <- add_argument(
+  parser,
+  "--randomise_rng_seed",
+  type = "boolean",
+  help = "should the seed for the random number generator be randomised?",
+  default = TRUE
+)
+parser <- add_argument(
+  parser,
+  "--rng_seed",
+  type = "integer",
+  help = "seed for the random number generator (only used if randomise_rng_seed is FALSE)",
+  default = -73
+)
 
 cmd_args <- parse_args(parser)
+
+if (!cmd_args$randomise_rng_seed) {
+  set.seed(cmd_args$rng_seed)
+}
 
 # Load auxiliary functions
 source(file = file.path(cmd_args$root_dir, "build.R"), chdir = TRUE)
@@ -120,5 +138,7 @@ out <- simulate_data(
   u = u,
   n_samples = cmd_args$number_of_samples, # the number of (biological) samples
   n_cpg_sites = cmd_args$number_of_cpg_sites, # number of observations/time steps/CpG sites
-  lambda = cmd_args$lambda # expected number of reads per CpG site and sample
+  lambda = cmd_args$lambda, # expected number of reads per CpG site and sample
+  randomise_rng_seed = cmd_args$randomise_rng_seed, # should the seed for the random number generator be randomised?
+  rng_seed = cmd_args$rng_seed # the seed of the random number generator
 )

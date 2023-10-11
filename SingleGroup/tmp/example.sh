@@ -63,7 +63,8 @@ estimate_parameters=true # should the model parameters be estimated? Otherwise, 
 
 n_particles=300 # the number of particles; larger values increase computational cost but improve accuracy (default: 250)
 estimate_regime_probabilities=true # should the regime probabilities be estimated (default: true)
-
+randomise_rng_seed=false # shoud the random-number-generator seed be randomised?
+rng_seed=73 # the random-number-generator seed (default: 73); only used if randomise_rng_seed is false
 
 
 ##########################################################
@@ -91,7 +92,7 @@ lambda=100 # optional parameter governing the expected number of reads per CpG s
 Rscript specify_parameters.R $rootdir $inputdir
 
 # Simulate data using the parameters specified by the previous script:
-Rscript simulate_data.R $rootdir $inputdir $outputdir $n_samples $n_cpg_sites --lambda $lambda
+Rscript simulate_data.R $rootdir $inputdir $outputdir $n_samples $n_cpg_sites --lambda $lambda --randomise_rng_seed $randomise_rng_seed --rng_seed $rng_seed
 
 cd $outputdir # folder containing the simulated data
 mv genomic_positions.csv n_total_reads.csv n_methylated_reads.csv $inputdir # move simulated data to inputdir
@@ -99,5 +100,5 @@ cd $rootdir # back to root directory
 # ---------------------------------------------------------------------------- #
 
 # Runs the single-group estimation algorithm:
-Rscript estimate_parameters_and_regimes.R $rootdir $inputdir $outputdir --n_particles $n_particles --estimate_regime_probabilities $estimate_regime_probabilities --estimate_parameters $estimate_parameters
+Rscript estimate_parameters_and_regimes.R $rootdir $inputdir $outputdir --n_particles $n_particles --estimate_regime_probabilities $estimate_regime_probabilities --estimate_parameters $estimate_parameters --randomise_rng_seed $randomise_rng_seed --rng_seed $rng_seed
 

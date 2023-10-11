@@ -10,7 +10,6 @@
 #include <RcppArmadillo.h>
 #include <random>
 #include <vector>
-#include "rng/Rng.h"
 #include "misc/misc.h"
 
 class GradientAscent
