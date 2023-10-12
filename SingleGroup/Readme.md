@@ -1,10 +1,11 @@
 # Single Group Analysis
 
-Hygeia can be used for single group analyses and is useful for the following use-cases:
+Hygeia can be used for single-group analyses and is useful for the following use-cases:
 
-* TODO
-* TODO
-* TODO
+1. Estimate the model parameters from a given data set.
+2. Using known model parameters (e.g. estimated from this or another data set), probabilistically segment the genome into regions of different methylation regimes (e.g., regimes with high/low/medium mean and high/low/medium variance or chaotic-methylation regimes).
+3. (1) and (2) can also be performed simultaneously.
+4. Simulate synthetic data from Hygeia's single-group change-point model.
 
 You can find out more by reading our paper: "A Bayesian framework for genome-wide inference of DNA methylation levels", available at: https://arxiv.org/abs/2211.07311.
 
