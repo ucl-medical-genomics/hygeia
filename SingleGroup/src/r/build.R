@@ -1,7 +1,12 @@
 library("Rcpp")
 library("RcppArmadillo")
 
-if (is.null(cmd_args)) {
+if (exists("cmd_args")) {
+  # If called from source function with chdir = TRUE
+  # Note, that the src_root is relative to current file.
+  cmd_args$skip_build <- TRUE
+  cmd_args$src_root_dir <- '../'
+} else {
   library("argparser")
   parser <- arg_parser(description = "")
   parser <- add_argument(
@@ -18,11 +23,6 @@ if (is.null(cmd_args)) {
     help = "root directory for the src folder containing the R scripts"
   )
   cmd_args <- parse_args(parser)
-} else {
-  # If called from source function with chdir = TRUE
-  # Note, that the src_root is relative to current file.
-  cmd_args$skip_build <- TRUE
-  cmd_args$src_root_dir <- '../'
 }
 
 # C++ COMPILATION

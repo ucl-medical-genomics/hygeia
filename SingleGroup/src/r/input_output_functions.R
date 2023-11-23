@@ -154,3 +154,15 @@ read_u_from_csv_file <- function(
   read_csv(file = file.path(file), show_col_types = FALSE) %>% pull(1)
 }
 
+
+create_dirs_for_file <- function(file_path) {
+  # Extract directory path from the file path
+  dir_path <- dirname(file_path)
+  print(dir_path)
+
+  # Create the directory and its parent directories if they don't exist
+  if (!dir.exists(dir_path)) {
+    dir.create(dir_path, recursive = TRUE)
+    print(paste0("Created directory ", dir_path))
+  }
+}

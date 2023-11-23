@@ -1,3 +1,5 @@
+#!/bin/bash
+
 mkdir -p ./example2/params;
 Rscript specify_parameters.R \
   --mu_csv_file ./example2/params/mu.csv \

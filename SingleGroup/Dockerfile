@@ -1,8 +1,12 @@
-FROM r-base:4.3.1
+FROM rocker/r-ver:latest
+
+RUN apt-get update && apt-get install -y procps && rm -rf /var/lib/apt/lists/*
 
 RUN Rscript -e 'install.packages(c("tidyverse", "argparser", "Rcpp", "RcppArmadillo"))'
 
-COPY . /hygeia/SingleGroup
+WORKDIR /hygeia/SingleGroup
+COPY ./src/ ./src/
+RUN Rscript ./src/r/build.R --src_root_dir ./src
 
-RUN Rscript /hygeia/SingleGroup/src/r/build.R --src_root_dir /hygeia/SingleGroup/src
-
+COPY ./bin ./bin
+ENV PATH="/hygeia/SingleGroup/bin:${PATH}"

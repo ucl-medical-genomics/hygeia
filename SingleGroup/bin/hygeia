@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Check if at least one argument is provided
+if [ "$#" -lt 1 ]; then
+    echo "Usage: hygeia [script] [arguments...]"
+    exit 1
+fi
+
+# Get the script name from the first argument
+SCRIPT_NAME=$1
+
+# Shift the arguments so that $@ contains only the subsequent arguments
+shift
+
+# Get the absolute path to the base directory
+BASE_DIR="$(realpath "$(dirname "$0")/../")"
+SRC_DIR="$BASE_DIR/src/r"
+
+# Call the appropriate R script based on the script name
+case $SCRIPT_NAME in
+    specify_parameters)
+        specify_parameters --root_dir "${SRC_DIR}" "$@"
+        ;;
+    simulate_data)
+        simulate_data --root_dir "${SRC_DIR}" "$@"
+        ;;
+    estimate_parameters_and_regimes)
+        estimate_parameters_and_regimes --root_dir "${SRC_DIR}" "$@"
+        ;;
+    *)
+        echo "Invalid script name: $SCRIPT_NAME"
+        echo "Valid options are: specify_parameters, simulate_data, estimate_parameters_and_regimes"
+        exit 2
+        ;;
+esac

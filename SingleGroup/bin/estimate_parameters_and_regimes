@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 ################################################################################
 #
 # R script for estimating the single-group regimes
@@ -190,6 +192,23 @@ kappa <- read_kappa_from_csv_file(cmd_args$kappa_csv_file)
 u     <- read_u_from_csv_file(cmd_args$u_csv_file)
 p     <- read_p_from_csv_file(cmd_args$p_csv_file)
 
+
+# Ensure the output directories exist
+file_paths <- c(
+  cmd_args$regimes_csv_file,
+  cmd_args$n_methylated_reads_csv_file,
+  cmd_args$genomic_positions_csv_file,
+  cmd_args$n_total_reads_csv_file,
+  cmd_args$regime_probabilities_csv_file,
+  cmd_args$theta_trace_csv_file,
+  cmd_args$p_csv_file,
+  cmd_args$omega_csv_file,
+  cmd_args$kappa_csv_file,
+  cmd_args$mu_csv_file,
+  cmd_args$sigma_csv_file,
+  cmd_args$u_csv_file
+)
+lapply(file_paths, create_dirs_for_file)
 
 # RUN THE ESTIMATION ALGORITHM
 # ============================================================================ #
