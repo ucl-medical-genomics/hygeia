@@ -35,7 +35,7 @@ First you need to setup your parameters:
 
 ```bash
 mkdir ./example/params;
-Rscript specify_parameters.R \
+hygeia specify_parameters \
   --mu_csv_file ./example/params/mu.csv \
   --sigma_csv_file ./example/params/sigma.csv \
   --omega_csv_file ./example/params/omega.csv \
@@ -53,7 +53,7 @@ algorithm without providing your own data set.
 
 ```bash
 mkdir example/simulated_data;
-Rscript simulate_data.R \
+hygeia simulate_data \
   --mu_csv_file ./example/params/mu.csv \
   --sigma_csv_file ./example/params/sigma.csv \
   --omega_csv_file ./example/params/omega.csv \

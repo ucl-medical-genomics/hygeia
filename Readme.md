@@ -84,3 +84,21 @@ docker build -t ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.0.1 .
 docker push ghcr.io/ucl-medical-genomics/hygeia_single_group:latest
 docker push ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.0.1
 ```
+
+# Tutorial - Run Single Group analysis with NA12878
+
+1. Download data
+
+```bash
+curl -LO https://www.encodeproject.org/files/ENCFF608CXC/@@download/ENCFF608CXC.bigWig
+
+https://www.encodeproject.org/files/ENCFF446HUA/@@download/ENCFF446HUA.bed.gz
+```
+
+2. Run Hygeia
+
+```bash
+nextflow run ....
+
+```
+

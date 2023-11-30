@@ -2,3 +2,6 @@
 work
 .nextflow*
 result
+results
+tmp/test_data/
+__pycache__
