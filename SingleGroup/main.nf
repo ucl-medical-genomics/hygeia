@@ -1,6 +1,6 @@
 process specifyParameters {
   // container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:0.0.1'
-  container 'hygiea/single_group'
+  container 'hygeia/single_group'
   if (params.output.specify_param_dir !== null) {
     publishDir "${params.output.specify_param_dir}", mode: 'copy'
   }
@@ -27,7 +27,7 @@ process specifyParameters {
 
 process simulateData {
   // container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:0.0.1'
-  container 'hygiea/single_group'
+  container 'hygeia/single_group'
   if (params.output.simulated_data_dir !== null) {
     publishDir "${params.output.simulated_data_dir}", mode: 'copy'
   }
@@ -65,7 +65,7 @@ process simulateData {
 
 process estimateParametersAndRegimes {
   // container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:0.0.1'
-  container 'hygiea/single_group'
+  container 'hygeia/single_group'
   if (params.output.parameters_and_regimes_dir !== null) {
     publishDir "${params.output.parameters_and_regimes_dir}", mode: 'copy'
   }
