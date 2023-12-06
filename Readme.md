@@ -4,7 +4,7 @@
 
 ## Requirements
 
-* Nextflow
+* Nextflow (https://www.nextflow.io/docs/latest/getstarted.html)
 * Docker
 
 ## Single Group Analysis
@@ -16,6 +16,7 @@ To run the pipeline, after installing nextflow, you can run the following comman
 ```bash
 nextflow run ucl-medical-genomics/hygeia -entry SingleGroup/main.nf -c nextflow.config
 ```
+
 
 > Note you can use -r <git_branch_name> to use a different github branch.
 
