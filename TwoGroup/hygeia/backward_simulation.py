@@ -5,7 +5,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow_probability.python.util import SeedStream
 import tensorflow_probability as tfp
-from CaseControlCode import smoothing_functions
+from hygeia import smoothing_functions
 
 tfd = tfp.distributions
 

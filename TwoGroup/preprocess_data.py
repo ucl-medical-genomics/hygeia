@@ -39,7 +39,10 @@ flags.DEFINE_multi_string(
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
 
-cpg_sites = pd.read_csv(FLAGS.cpg_file_path, sep='\t', compression='gzip')
+cpg_sites_compression = 'gzip' if FLAGS.cpg_file_path.endswith('.gz') else False
+print (FLAGS.cpg_file_path)
+cpg_sites = pd.read_csv(FLAGS.cpg_file_path, sep='\t')
+
 total_cpg_sites_merged = 0
 
 if not os.path.exists(FLAGS.output_path):

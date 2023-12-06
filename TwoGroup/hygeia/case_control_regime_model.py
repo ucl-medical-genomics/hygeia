@@ -4,7 +4,7 @@ import numpy as np
 from tensorflow_probability.python.util import SeedStream
 import collections
 from tensorflow_probability.python.internal import prefer_static
-from CaseControlCode import case_control_distributions
+from hygeia import case_control_distributions
 
 tfd = tfp.distributions
 tfb = tfp.bijectors

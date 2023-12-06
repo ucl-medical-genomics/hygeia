@@ -4,8 +4,8 @@ import numpy as np
 from tensorflow_probability.python.util import SeedStream
 import collections
 from tensorflow_probability.python.internal import prefer_static
-from CaseControlCode import case_control_distributions
-from CaseControlCode.robust_beta_binomial import RobustBetaBinomial
+from hygeia import case_control_distributions
+from hygeia.robust_beta_binomial import RobustBetaBinomial
 
 
 tfd = tfp.distributions

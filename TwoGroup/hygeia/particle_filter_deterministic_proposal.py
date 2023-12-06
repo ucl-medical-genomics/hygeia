@@ -5,7 +5,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow_probability.python.internal import prefer_static
 import tensorflow_probability as tfp
-from CaseControlCode import resampling_functions
+from hygeia import resampling_functions
 
 tfd = tfp.distributions
 

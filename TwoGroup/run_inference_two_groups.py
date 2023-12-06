@@ -4,12 +4,10 @@ import numpy as np
 import os
 from absl import flags, app
 import sys
-sys.path.insert(0, '..')
-import time
 import pandas as pd
-import CaseControlCode.filter_and_smoother_algorithm as filter_and_smoother_algorithm
-from CaseControlCode.case_control_regime_model import CaseControlRegimeModel
-from CaseControlCode.case_control_proposal_mappings import CaseControlProposal
+import hygeia.filter_and_smoother_algorithm as filter_and_smoother_algorithm
+from hygeia.case_control_regime_model import CaseControlRegimeModel
+from hygeia.case_control_proposal_mappings import CaseControlProposal
 from pathlib import Path
 
 

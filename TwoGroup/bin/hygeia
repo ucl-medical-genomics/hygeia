@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Check if at least one argument is provided
+if [ "$#" -lt 1 ]; then
+    echo "Usage: hygeia [script] [arguments...]"
+    exit 1
+fi
+
+# Get the script name from the first argument
+SCRIPT_NAME=$1
+
+# Shift the arguments so that $@ contains only the subsequent arguments
+shift
+
+# Get the absolute path to the base directory
+BASE_DIR="$(realpath "$(dirname "$0")/../")"
+
+# Call the appropriate R script based on the script name
+case $SCRIPT_NAME in
+    preprocess)
+        (python "${BASE_DIR}/preprocess_data.py" "$@")
+        ;;
+    infer)
+        (python "${BASE_DIR}/run_inference_two_groups.py" "$@")
+        ;;
+    *)
+        echo "Invalid script name: $SCRIPT_NAME"
+        echo "Valid options are: preprocess and infer"
+        exit 2
+        ;;
+esac

@@ -32,13 +32,13 @@ However, Hygeia should work as long as the generated files are indexed at the sa
 To run the below command without command line arguments, unzip the input file (containing gemBS data of the newborn and adult, parameter estimates of the single group model for selected chromosomes and all CpG sites from the reference genome) and save it under ./test_data
 
 ```bash
-python preprocess_data.py \
-  -cpg_file_path example_data/ \
-  -output_path example_data/output \
-  -case_data_path \
-  -case_id_names \
-  -control_data_path \
-  -control_id_names
+bin/hygeia preprocess \
+  -cpg_file_path ./tmp/test_data/cpg.tsv.gz \
+  -case_data_path ./tmp/test_data/EGAZ00001016574_90_cpg.txt.gz \
+  -case_id_names EGAZ00001016574_90 \
+  -control_data_path ./tmp/test_data/EGAZ00001016575_90_cpg.txt.gz \
+  -control_id_names EGAZ00001016575_90 \
+  -output_path ./results/preprocessed
 ```
 
 Here are further details on each argument:
@@ -60,11 +60,11 @@ The results can be seen as one Monte Carlo sample (specified by the seed flag) o
 These outputs can be used to test/discover for DMPs/DMRs with further scripts.
 
 ```bash
-python run_inference_two_groups.py \
-  -results_dir \
-  -data_dir \
-  -single_group_dir \
-  -chrom
+bin/hygeia infer \
+  -results_dir ./results/out \
+  -data_dir ./results/preprocessed \
+  -single_group_dir ../SingleGroup/result/params \
+  -chrom 22
 ```
 
 Here are further details on each argument
