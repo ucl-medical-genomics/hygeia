@@ -23,8 +23,6 @@ process preprocess {
 
     script:
     """
-    ls 
-    pwd
     hygeia preprocess \
       -cpg_file_path ${cpg_file_path} \
       -case_data_path ${case_data_path} \

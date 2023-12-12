@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Check if at least one argument is provided
+if [ "$#" -lt 1 ]; then
+    echo "Usage: hygeia [script] [arguments...]"
+    echo "Valid scripts are: specify_parameters, simulate_data, estimate_parameters_and_regimes preprocess infer"
+    exit 1
+fi
+
+# Get the script name from the first argument
+SCRIPT_NAME=$1
+
+# Shift the arguments so that $@ contains only the subsequent arguments
+shift
+
+# Get the absolute path to the base directory
+BASE_DIR="$(realpath "$(dirname "$0")/../")"
+SINGLE_GROUP_DIR="${BASE_DIR}/src/single_group"
+TWO_GROUP_DIR="${BASE_DIR}/src/two_group"
+
+# Call the appropriate R script based on the script name
+case $SCRIPT_NAME in
+    specify_parameters)
+        exec "${SINGLE_GROUP_DIR}/bin/specify_parameters" --root_dir "${SINGLE_GROUP_DIR}/src/r" "$@"
+        ;;
+    simulate_data)
+        exec "${SINGLE_GROUP_DIR}/bin/simulate_data" --root_dir "${SINGLE_GROUP_DIR}/src/r" "$@"
+        ;;
+    estimate_parameters_and_regimes)
+        exec "${SINGLE_GROUP_DIR}/bin/estimate_parameters_and_regimes" --root_dir "${SINGLE_GROUP_DIR}/src/r" "$@"
+        ;;
+    preprocess)
+        exec python "${TWO_GROUP_DIR}/preprocess_data.py" "$@"
+        ;;
+    infer)
+        exec python "${TWO_GROUP_DIR}/run_inference_two_groups.py" "$@"
+        ;;
+    *)
+        echo "Invalid script name: $SCRIPT_NAME"
+        echo "Valid scripts are: specify_parameters, simulate_data, estimate_parameters_and_regimes preprocess infer"
+        exit 2
+        ;;
+esac

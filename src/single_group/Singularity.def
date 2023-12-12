@@ -1,0 +1,21 @@
+Bootstrap: docker
+From: rocker/r-ver:latest
+
+%post
+    # Update and install dependencies
+    apt-get update && apt-get install -y procps
+    rm -rf /var/lib/apt/lists/*
+
+    # Install R packages
+    Rscript -e 'install.packages(c("tidyverse", "argparser", "Rcpp", "RcppArmadillo"))'
+
+%files
+    ./src /hygeia/SingleGroup/src
+    ./bin /hygeia/SingleGroup/bin
+
+%environment
+    export PATH="/hygeia/SingleGroup/bin:$PATH"
+
+%runscript
+    # Define what happens when you run the container
+    exec /hygeia/SingleGroup/bin/hygeia "$@"
