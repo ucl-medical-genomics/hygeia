@@ -50,11 +50,22 @@ All the paramaters in the config file can be set via the CLI. This may be useful
 
 ```bash
 nextflow run ucl-medical-genomics/hygeia \
-  --base_output_dir /path/to/output/ \
-  --params_data_dir params \
-  --simulated_data_dir simulated_data \
-  --regimes_dir regimes / \
-  -with-report report.html -with-dag flowchart.pdf
+  --output_dir /path/to/output/dir \
+  --mu 0.99,0.01,0.80,0.20,0.50,0.50 \
+  --sigma 0.05,0.05,0.20,0.20,0.20,0.2886751
+  # --with_simulated_data
+  --input_csv ./sample_sheet.csv
+  --chr 22
+
+# Where ./sample_sheet.csv
+
+group,name,file
+case,S1,/data/s1_w1.bed.gz
+case,S2,/data/s2_w1.bed.gz
+case,S3,/data/s3_w1.bed.gz
+control,S4,/data/s4_w1.bed.gz
+control,S5,/data/s5_w1.bed.gz
+control,S6,/data/s6_w1.bed.gz
 ```
 
 ## Development
