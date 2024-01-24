@@ -85,7 +85,7 @@ There are also a couple of model specific or inference specific flags that can b
 To simulate data from a case-control model and test the inference algorithm, run the following command 
 
 ```bash
-python /home/marcelandre.hirt/hygeia_nextflow/hygeia/TwoGroup/simulate_two_groups.py
+python hygeia/TwoGroup/simulate_two_groups.py
 ```
 Useful command line arguments are
 
