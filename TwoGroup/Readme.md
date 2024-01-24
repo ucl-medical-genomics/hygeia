@@ -77,3 +77,23 @@ Here are further details on each argument
 ```
 
 There are also a couple of model specific or inference specific flags that can be adjusted.
+
+
+
+#### Case-Control Model Inference on simulated data
+
+To simulate data from a case-control model and test the inference algorithm, run the following command 
+
+```bash
+python /home/marcelandre.hirt/hygeia_nextflow/hygeia/TwoGroup/simulate_two_groups.py
+```
+Useful command line arguments are
+
+```bash
+-regimes_config: configuration determining the shape of the METEORs (e.g. 8)
+-num_observations: number of CpG sites to simulate
+-model_dir: path dir where to save the results
+-num_resampled_particles: number of resampled particles with higher number (e.g. 50) yielding better accuracy at increased computational cost compared to a lower number (e.g. 20) t
+-num_samples_backward: number of particles in the backward pass (e.g. 25)
+```
+
