@@ -12,7 +12,7 @@ params.single_group_dir = "../SingleGroup/result/params"
 params.chrom = 22
 
 process preprocess {
-  container 'hygiea/two_group'
+  container 'ucl-medical-genomics/hygeia_two_group'
     input:
     path cpg_file_path
     path case_data_path
@@ -34,7 +34,7 @@ process preprocess {
 }
 
 process infer {
-  container 'hygiea/two_group'
+  container 'ucl-medical-genomics/hygeia_two_group'
     input:
     path data_dir
 

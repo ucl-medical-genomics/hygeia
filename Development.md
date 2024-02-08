@@ -4,13 +4,18 @@
 
 The following dependencies are required
 
-* GCC compiler
-* R 4.3.1
-* Python
+* Docker
 
 ```bash
-Rscript -e 'install.packages(c("tidyverse", "argparser", "Rcpp", "RcppArmadillo"))'
+# Single Group
+docker build -t ucl-medical-genomics/hygeia_single_group src/single_group
 
-Rscript src/single_group/src/r/build.R
+# Two Group
+docker build -t ucl-medical-genomics/hygeia_two_group src/two_group
+```
 
+## Run locally
+
+```bash
+nextflow run single_group.nf -
 ```
