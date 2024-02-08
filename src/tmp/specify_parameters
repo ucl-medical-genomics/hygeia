@@ -104,7 +104,6 @@ u <- cmd_args$u
 kappa <- as.numeric(unlist(strsplit(cmd_args$kappa, ",")))
 omega <- as.numeric(unlist(strsplit(cmd_args$omega, ",")))
 sigma <- as.numeric(unlist(strsplit(cmd_args$sigma, ",")))
-# sigma <- c(0.05, 0.05, 0.20, 0.20, 0.20, 1 / sqrt(12))
 mu <- as.numeric(unlist(strsplit(cmd_args$mu, ",")))
 
 # transition matrix for the regimes:

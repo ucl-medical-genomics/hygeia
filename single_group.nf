@@ -1,44 +1,7 @@
-process specifyParameters {
-  // container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:0.0.1'
-  container 'ucl-medical-genomics/hygeia_single_group'
-  if (params.output.specify_param_dir !== null) {
-    publishDir "${params.output.specify_param_dir}", mode: 'copy'
-  }
-
-  output:
-  path(params.mu_csv_filename), emit: mu_csv
-  path(params.sigma_csv_filename), emit: sigma_csv
-  path(params.omega_csv_filename), emit: omega_csv
-  path(params.kappa_csv_filename), emit: kappa_csv
-  path(params.u_csv_filename), emit: u_csv
-  path(params.p_csv_filename), emit: p_csv
-
-  script:
-  """
-  hygeia specify_parameters \\
-    --mu_csv_file ${params.mu_csv_filename} \\
-    --sigma_csv_file ${params.sigma_csv_filename} \\
-    --omega_csv_file ${params.omega_csv_filename} \\
-    --kappa_csv_file ${params.kappa_csv_filename} \\
-    --u_csv_file ${params.u_csv_filename} \\
-    --p_csv_file ${params.p_csv_filename} ${params.specify_parameters.extra_args.join(" ")}
-  """
-}
-
 process simulateData {
   // container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:0.0.1'
   container 'ucl-medical-genomics/hygeia_single_group'
-  if (params.output.simulated_data_dir !== null) {
-    publishDir "${params.output.simulated_data_dir}", mode: 'copy'
-  }
-
-  input:
-  path mu_csv
-  path sigma_csv
-  path omega_csv
-  path kappa_csv
-  path u_csv
-  path p_csv
+  publishDir "${params.output_dir}/simulatedData", mode: 'copy'
 
   output:
   path(params.regimes_csv), emit: regimes_csv
@@ -49,35 +12,25 @@ process simulateData {
   script:
   """
   hygeia simulate_data \\
-    --mu_csv_file ${mu_csv} \\
-    --sigma_csv_file ${sigma_csv} \\
-    --omega_csv_file ${omega_csv} \\
-    --kappa_csv_file ${kappa_csv} \\
-    --u_csv_file ${u_csv} \\
-    --p_csv_file ${p_csv} \\
-    --regimes_csv_file ${params.regimes_csv} \\
+    --mu 0.99,0.01,0.80,0.20,0.50,0.50 \\
+    --sigma 0.05,0.05,0.20,0.20,0.20,0.2886751 \\
+    --u 3 \\
+    --kappa 2,2,2,2,2,2 \\
+    --omega 0.995,0.975,0.950,0.925,0.900,0.900 \\
     --n_methylated_reads_csv_file ${params.n_methylated_reads_csv} \\
     --genomic_positions_csv_file ${params.genomic_positions_csv} \\
     --n_total_reads_csv_file ${params.n_total_reads_csv} \\
-    ${params.simulate_data.extra_args.join(" ")}
+    --regimes_csv_file ${params.regimes_csv} \\
+    ${params.simulate_data_extra_args.join(" ")}
   """
 }
 
 process estimateParametersAndRegimes {
   // container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:0.0.1'
   container 'ucl-medical-genomics/hygeia_single_group'
-  if (params.output.parameters_and_regimes_dir !== null) {
-    publishDir "${params.output.parameters_and_regimes_dir}", mode: 'copy'
-  }
+  publishDir "${params.output_dir}/estimatedParamatersAndRegimes", mode: 'copy'
 
   input:
-  path mu_csv
-  path sigma_csv
-  path omega_csv
-  path kappa_csv
-  path u_csv
-  path p_csv
-  path regimes_csv
   path n_methylated_reads_csv
   path genomic_positions_csv
   path n_total_reads_csv
@@ -89,12 +42,9 @@ process estimateParametersAndRegimes {
   script:
   """
   hygeia estimate_parameters_and_regimes \\
-    --mu_csv_file ${mu_csv} \\
-    --sigma_csv_file ${sigma_csv} \\
-    --omega_csv_file ${omega_csv} \\
-    --kappa_csv_file ${kappa_csv} \\
-    --u_csv_file ${u_csv} \\
-    --p_csv_file ${p_csv} \\
+    --mu 0.99,0.01,0.80,0.20,0.50,0.50 \\
+    --sigma 0.05,0.05,0.20,0.20,0.20,0.2886751 \\
+    --u 3 \\
     --n_methylated_reads_csv_file ${n_methylated_reads_csv} \\
     --genomic_positions_csv_file ${genomic_positions_csv} \\
     --n_total_reads_csv_file ${n_total_reads_csv} \\
@@ -105,23 +55,8 @@ process estimateParametersAndRegimes {
 }
 
 workflow {
-  specifyParameters()
-  simulateData(
-    specifyParameters.out.mu_csv,
-    specifyParameters.out.sigma_csv,
-    specifyParameters.out.omega_csv,
-    specifyParameters.out.kappa_csv,
-    specifyParameters.out.u_csv,
-    specifyParameters.out.p_csv
-  )
+  simulateData()
   estimateParametersAndRegimes(
-    specifyParameters.out.mu_csv,
-    specifyParameters.out.sigma_csv,
-    specifyParameters.out.omega_csv,
-    specifyParameters.out.kappa_csv,
-    specifyParameters.out.u_csv,
-    specifyParameters.out.p_csv,
-    simulateData.out.regimes_csv,
     simulateData.out.n_methylated_reads_csv,
     simulateData.out.genomic_positions_csv,
     simulateData.out.n_total_reads_csv
