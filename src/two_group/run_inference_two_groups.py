@@ -164,19 +164,19 @@ def main(argv):
   #full chromosome data
   positions = pd.read_table(
     os.path.join(data_dir,
-                 'positions_{}.txt'.format(FLAGS.chrom)), sep = ' ', header = None)
+                 'positions_{}.txt'.format(FLAGS.chrom)), sep = ',', header = None)
   n_total_reads_control = pd.read_table(
     os.path.join(data_dir,
-                 'n_total_reads_control_{}.txt'.format(FLAGS.chrom)), sep = ' ', header = None)
+                 'n_total_reads_control_{}.txt'.format(FLAGS.chrom)), sep = ',', header = None)
   n_methylated_reads_control = pd.read_table(
     os.path.join(data_dir,
-                 'n_methylated_reads_control_{}.txt'.format(FLAGS.chrom)), sep = ' ', header = None)
+                 'n_methylated_reads_control_{}.txt'.format(FLAGS.chrom)), sep = ',', header = None)
   n_total_reads_case = pd.read_table(
     os.path.join(data_dir,
-                 'n_total_reads_case_{}.txt'.format(FLAGS.chrom)), sep = ' ', header = None)
+                 'n_total_reads_case_{}.txt'.format(FLAGS.chrom)), sep = ',', header = None)
   n_methylated_reads_case = pd.read_table(
     os.path.join(data_dir,
-                 'n_methylated_reads_case_{}.txt'.format(FLAGS.chrom)), sep = ' ', header = None)
+                 'n_methylated_reads_case_{}.txt'.format(FLAGS.chrom)), sep = ',', header = None)
 
 
   n_observations = n_total_reads_control.shape[0]
