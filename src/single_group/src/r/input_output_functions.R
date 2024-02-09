@@ -20,6 +20,7 @@ read_from_csv_file <- function(file, as_matrix = FALSE, transpose = FALSE) {
 
 ## Utility Function for Creating Directories
 create_dirs_for_file <- function(file_path) {
+  if (!is.character(file_path)) return()
   dir_path <- dirname(file_path)
   if (!dir.exists(dir_path)) {
     dir.create(dir_path, recursive = TRUE)
