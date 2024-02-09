@@ -69,18 +69,19 @@ FLAGS = flags.FLAGS
 
 
 def get_estimated_control_group_param(chromosome, regimes_config, n_methylation_regimes):
-  estimated_params = pd.to_numeric((pd.read_table(os.path.join(
-      FLAGS.single_group_dir, 'theta_trace_' + str(chromosome) + '.csv'), sep = ',', header = None).iloc[1])).to_numpy()
-  p_softmax = -np.Inf* np.ones([n_methylation_regimes, n_methylation_regimes])
+  omega_control = pd.to_numeric((pd.read_table(os.path.join(
+      FLAGS.single_group_dir, 'omega_' + str(chromosome) + '.csv'), sep = ',', header = True).iloc[0])).to_numpy()
+  p_control = pd.to_numeric(pd.read_table(os.path.join(
+      FLAGS.single_group_dir, 'p_' + str(chromosome) + '.csv'), sep = ',', header = True)).to_numpy()
+
+  p_softmax = -np.Inf * np.ones([n_methylation_regimes, n_methylation_regimes])
   i=0
   for r in range(n_methylation_regimes):
     for r1 in range(n_methylation_regimes):
-      if r !=r1:
-        p_softmax[r,r1] = np.math.log(estimated_params[i])
+      if r != r1:
+        p_softmax[r,r1] = np.math.log(p_control[i])
         i+=1
-  omega_control = estimated_params[-n_methylation_regimes:]
   return p_softmax, omega_control
-
 
 def main(argv):
   del argv  # unused
