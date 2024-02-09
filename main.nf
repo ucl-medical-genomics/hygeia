@@ -83,15 +83,14 @@ process estimateParametersAndRegimes {
         --omega_csv_file single_group_estimation/omega_${chrom}.csv \
         --theta_file single_group_estimation/theta_${chrom}.csv \
         --estimate_regime_probabilities \
-        --estimate_parameters \
-        --n_particles 10
+        --estimate_parameters
     """
     // TODO - remove n_particles
 }
 
 process infer {
     container 'ucl-medical-genomics/hygeia_two_group'
-    publishDir "${params.output_dir}", mode: 'copy'
+    publishDir "${params.output_dir}/two_group", mode: 'copy'
 
     input:
     // preprocessed data output
