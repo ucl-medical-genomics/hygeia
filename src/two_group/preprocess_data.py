@@ -115,6 +115,3 @@ np.savetxt(os.path.join(FLAGS.output_path,'n_methylated_reads_case_{}.txt'.forma
 np.savetxt(os.path.join(FLAGS.output_path,'n_total_reads_control_{}.txt'.format(chromosome)), n_total_reads_control, delimiter=",")
 np.savetxt(os.path.join(FLAGS.output_path,'n_total_reads_case_{}.txt'.format(chromosome)), n_total_reads_case, delimiter=",")
 np.savetxt(os.path.join(FLAGS.output_path,'cpg_sites_merged_{}.txt'.format(chromosome)), [cpg_sites_merged], delimiter=",")
-
-np.savetxt(os.path.join(FLAGS.output_path,'total_cpg_sites_merged_{}.txt'.format(chromosome)), [total_cpg_sites_merged])
-np.savetxt(os.path.join(FLAGS.output_path,'total_cpg_sites_merged.txt'), [total_cpg_sites_merged])

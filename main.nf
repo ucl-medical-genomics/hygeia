@@ -3,7 +3,6 @@
 params.cpg_file_path = "/home/imoghul/d/hygeia/run_08_02_2024/data/ref/cpg.tsv.gz"
 params.sample_sheet = "/home/imoghul/d/hygeia/run_08_02_2024/data/t1d/sample_sheet.csv"
 params.output_dir = "results"
-params.output_path = '/home/imoghul/d/hygeia/run_08_02_2024/data/t1d/preprocessed2'
 params.chrom = 22
 
 Channel
@@ -30,8 +29,6 @@ process preprocess {
     path("preprocessed_data/n_methylated_reads_case_${chrom}.txt"), emit: n_methylated_reads_case_chr
     path("preprocessed_data/n_methylated_reads_control_${chrom}.txt"), emit: n_methylated_reads_control_chr
     path("preprocessed_data/cpg_sites_merged_${chrom}.txt"), emit: cpg_sites_merged_chr
-    path("preprocessed_data/total_cpg_sites_merged_${chrom}.txt"), emit: total_cpg_sites_merged_chr
-    path("preprocessed_data/total_cpg_sites_merged.txt"), emit: total_cpg_sites_merged
 
     script:
     def caseIdArgs = case_ids.collect { "--case_id_names '$it'" }.join(" ")
@@ -65,6 +62,9 @@ process estimateParametersAndRegimes {
     output:
     path("single_group_estimation/regimes_${chrom}.csv"), emit: regime_probabilities_csv
     path("single_group_estimation/theta_trace_${chrom}.csv"), emit: theta_trace_csv
+    path("single_group_estimation/p_${chrom}.csv"), emit: p_csv
+    path("single_group_estimation/kappa_${chrom}.csv"), emit: kappa_csv
+    path("single_group_estimation/omega_${chrom}.csv"), emit: omega_csv
 
     script:
     """
@@ -77,9 +77,14 @@ process estimateParametersAndRegimes {
         --n_total_reads_csv_file ${n_total_reads_control_chr} \
         --regime_probabilities_csv_file single_group_estimation/regimes_${chrom}.csv \
         --theta_trace_csv_file single_group_estimation/theta_trace_${chrom}.csv \
+        --p_csv_file single_group_estimation/p_${chrom}.csv \
+        --kappa_csv_file single_group_estimation/kappa_${chrom}.csv \
+        --omega_csv_file single_group_estimation/omega_${chrom}.csv \
         --estimate_regime_probabilities \
-        --estimate_parameters
+        --estimate_parameters \
+        --n_particles 10
     """
+    // TODO - remove n_particles
 }
 
 process infer {
@@ -94,11 +99,12 @@ process infer {
     path n_methylated_reads_case_chr
     path n_methylated_reads_control_chr
     path cpg_sites_merged_chr
-    path total_cpg_sites_merged_chr
-    path total_cpg_sites_merged
     // single group output
     path regime_probabilities_csv
     path theta_trace_csv
+    path p_csv
+    path kappa_csv
+    path omega_csv
     val chrom
 
     output:
@@ -132,10 +138,11 @@ workflow {
         preprocess.out.n_methylated_reads_case_chr,
         preprocess.out.n_methylated_reads_control_chr,
         preprocess.out.cpg_sites_merged_chr,
-        preprocess.out.total_cpg_sites_merged_chr,
-        preprocess.out.total_cpg_sites_merged,
         estimateParametersAndRegimes.out.regime_probabilities_csv,
         estimateParametersAndRegimes.out.theta_trace_csv,
+        estimateParametersAndRegimes.out.p_csv,
+        estimateParametersAndRegimes.out.kappa_csv,
+        estimateParametersAndRegimes.out.omega_csv,
         params.chrom
     )
 }

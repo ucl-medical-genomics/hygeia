@@ -63,14 +63,17 @@ parser <- add_argument(
 )
 parser <- add_argument(
   parser, "--omega_csv_file",
+  default = "omega.csv",
   help = "Output CSV file containing parameter vector omega (see documentation)"
 )
 parser <- add_argument(
   parser, "--kappa_csv_file",
+  default = "kappa.csv",
   help = "Output CSV file containing parameter vector kappa (see documentation)"
 )
 parser <- add_argument(
   parser, "--p_csv_file",
+  default = "p.csv",
   help = "Output CSV file containing parameter vector p (see documentation)"
 )
 
@@ -317,6 +320,9 @@ if (cmd_args$estimate_parameters) {
 
   if (!get_is_kappa_fixed(vartheta)) {
     final_parameter_estimates$kappa %>%
+      write_kappa_to_csv_file(file = cmd_args$kappa_csv_file)
+  } else {
+    kappa %>%
       write_kappa_to_csv_file(file = cmd_args$kappa_csv_file)
   }
 
