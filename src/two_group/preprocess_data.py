@@ -13,7 +13,7 @@ from pathlib import Path
 
 flags.DEFINE_string(
     'cpg_file_path',
-    default=os.path.join(Path(os.getcwd()).parents[0], 'test_data', 'cpg.tsv.gz'),
+    default=None,
     help="path to file containing all CpG sites.")
 flags.DEFINE_string(
     'output_path',
@@ -21,19 +21,19 @@ flags.DEFINE_string(
     help="Directory where to store the results.")
 flags.DEFINE_multi_string(
     'case_data_path',
-    default=[os.path.join(Path(os.getcwd()).parents[0], 'test_data','EGAZ00001016574_90_cpg.txt.gz')],
+    default=None,
     help="paths for the methylation data of the case group.")
 flags.DEFINE_multi_string(
     'case_id_names',
-    default= ['EGAZ00001016574_90'],
+    default=None,
     help="name of case ids in methylation files.")
 flags.DEFINE_multi_string(
     'control_data_path',
-    default=[os.path.join(Path(os.getcwd()).parents[0], 'test_data', 'EGAZ00001016575_90_cpg.txt.gz')],
+    default=None,
     help="paths for the methylation data of the control group.")
 flags.DEFINE_multi_string(
     'control_id_names',
-    default= ['EGAZ00001016575_90'],
+    default=None,
     help="name of control ids in methylation files.")
 
 FLAGS = flags.FLAGS
