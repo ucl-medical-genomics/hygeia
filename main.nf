@@ -65,6 +65,7 @@ process estimateParametersAndRegimes {
     path("single_group_estimation/p_${chrom}.csv"), emit: p_csv
     path("single_group_estimation/kappa_${chrom}.csv"), emit: kappa_csv
     path("single_group_estimation/omega_${chrom}.csv"), emit: omega_csv
+    path("single_group_estimation/theta_${chrom}.csv"), emit: theta_csv
 
     script:
     """
@@ -80,6 +81,7 @@ process estimateParametersAndRegimes {
         --p_csv_file single_group_estimation/p_${chrom}.csv \
         --kappa_csv_file single_group_estimation/kappa_${chrom}.csv \
         --omega_csv_file single_group_estimation/omega_${chrom}.csv \
+        --theta_file single_group_estimation/theta_${chrom}.csv \
         --estimate_regime_probabilities \
         --estimate_parameters \
         --n_particles 10
@@ -105,6 +107,8 @@ process infer {
     path p_csv
     path kappa_csv
     path omega_csv
+    path theta_csv
+
     val chrom
 
     output:
@@ -143,6 +147,7 @@ workflow {
         estimateParametersAndRegimes.out.p_csv,
         estimateParametersAndRegimes.out.kappa_csv,
         estimateParametersAndRegimes.out.omega_csv,
+        estimateParametersAndRegimes.out.theta_csv,
         params.chrom
     )
 }
