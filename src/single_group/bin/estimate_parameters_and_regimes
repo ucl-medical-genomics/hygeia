@@ -76,7 +76,11 @@ parser <- add_argument(
   default = "p.csv",
   help = "Output CSV file containing parameter vector p (see documentation)"
 )
-
+parser <- add_argument(
+  parser, "--theta_file",
+  default = "p.csv",
+  help = "Output CSV file containing parameter theta Estimates (see documentation)"
+)
 parser <- add_argument(
   parser,
   "--is_kappa_fixed",
@@ -216,7 +220,8 @@ file_paths <- c(
   cmd_args$theta_trace_csv_file,
   cmd_args$p_csv_file,
   cmd_args$omega_csv_file,
-  cmd_args$kappa_csv_file
+  cmd_args$kappa_csv_file,
+  cmd_args$theta_file
 )
 lapply(file_paths, create_dirs_for_file)
 
@@ -326,4 +331,12 @@ if (cmd_args$estimate_parameters) {
       write_kappa_to_csv_file(file = cmd_args$kappa_csv_file)
   }
 
+  aux$thetaEstimates %>%
+    unlist() %>%
+    matrix(., dim_theta, length(.) / dim_theta) %>% # automatically calculates n_cpg_sites from object size (used instead of matrix(dim_theta, n_cpg_sites))
+    t() %>%
+    as_tibble(.name_repair = ~ paste0("theta_", 1:dim_theta)) %>%
+    .[nrow(.), ] %>% # extracts the last row
+    as.numeric() %>%
+    write_to_csv_file(file = cmd_args$theta_file)
 }

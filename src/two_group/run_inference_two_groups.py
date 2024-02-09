@@ -9,7 +9,7 @@ import hygeia.filter_and_smoother_algorithm as filter_and_smoother_algorithm
 from hygeia.case_control_regime_model import CaseControlRegimeModel
 from hygeia.case_control_proposal_mappings import CaseControlProposal
 from pathlib import Path
-
+import time
 
 tfd = tfp.distributions
 tfb = tfp.bijectors
@@ -69,19 +69,18 @@ FLAGS = flags.FLAGS
 
 
 def get_estimated_control_group_param(chromosome, regimes_config, n_methylation_regimes):
-  omega_control = pd.to_numeric((pd.read_table(os.path.join(
-      FLAGS.single_group_dir, 'omega_' + str(chromosome) + '.csv'), sep = ',', header = True).iloc[0])).to_numpy()
-  p_control = pd.to_numeric(pd.read_table(os.path.join(
-      FLAGS.single_group_dir, 'p_' + str(chromosome) + '.csv'), sep = ',', header = True)).to_numpy()
-
-  p_softmax = -np.Inf * np.ones([n_methylation_regimes, n_methylation_regimes])
+  theta_data = pd.read_table(os.path.join(FLAGS.single_group_dir, 'theta_' + str(chromosome) + '.csv'), sep = ',')
+  estimated_params = pd.to_numeric(theta_data['data']).to_numpy()
+  p_softmax = np.zeros([n_methylation_regimes, n_methylation_regimes])
   i=0
   for r in range(n_methylation_regimes):
     for r1 in range(n_methylation_regimes):
-      if r != r1:
-        p_softmax[r,r1] = np.math.log(p_control[i])
+      if r !=r1:
+        p_softmax[r,r1] = np.math.exp(estimated_params[i])
         i+=1
-  return p_softmax, omega_control
+    p_softmax[r, :] = p_softmax[r, :] / np.sum(p_softmax[r,:])
+  omega_control = estimated_params[-n_methylation_regimes:]
+  return np.log(p_softmax), omega_control
 
 def main(argv):
   del argv  # unused
@@ -130,6 +129,10 @@ def main(argv):
                                                               FLAGS.regimes_config,
                                                                n_methylation_regimes)
   P_softmax_control = tf.Variable(p_softmax, dtype = dtype, name = 'P_softmax_control')
+
+  print(P_softmax_control)
+  print(tf.math.exp(P_softmax_control))
+
   ## success-probability parameters of the regime-specific negative-binomial distributions
   # governing the function h() which determines the change-point probabilities
   # omega_true_control = 0.9 * np.ones([n_methylation_regimes])
