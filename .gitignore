@@ -3,5 +3,5 @@ work
 .nextflow*
 result
 results
-TwoGroup/tmp/test_data/
+tmp/test_data/
 __pycache__

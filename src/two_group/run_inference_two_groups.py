@@ -16,10 +16,16 @@ tfb = tfp.bijectors
 
 dtype = tf.float32
 
-
+flags.DEFINE_list("mu",
+                     default='0.95,0.05,0.80,0.20,0.50,0.50',
+                     help="mu of the beta distribution")
+flags.DEFINE_list("sigma",
+                     default='0.05,0.05,0.1,0.1,0.1,0.2886751',
+                     help="sigma of the beta distribution")
+# TODO: Remove regimes_config as not used...
 flags.DEFINE_integer("regimes_config",
                      default=8,
-                     help="regime configuration id for mean/stds of regime params")
+                     help="[DEPRECIATED] regime configuration id for mean/stds of regime params")
 flags.DEFINE_integer("minimum_duration",
                      default=3,
                      help="minimum duration between change points")
@@ -64,8 +70,7 @@ FLAGS = flags.FLAGS
 
 def get_estimated_control_group_param(chromosome, regimes_config, n_methylation_regimes):
   estimated_params = pd.to_numeric((pd.read_table(os.path.join(
-      FLAGS.single_group_dir, str(chromosome),
-    str(regimes_config)+'_convertedFinalThetaEstimates_1_1_.csv'), sep = ',', header = None).iloc[1])).to_numpy()
+      FLAGS.single_group_dir, 'theta_trace_' + str(chromosome) + '.csv'), sep = ',', header = None).iloc[1])).to_numpy()
   p_softmax = -np.Inf* np.ones([n_methylation_regimes, n_methylation_regimes])
   i=0
   for r in range(n_methylation_regimes):
@@ -103,83 +108,13 @@ def main(argv):
   ## The following parameters are fixed/assumed to be known, i.e.
   ## they are not estimated by the parameter-estimation scheme.
   ## They are also the same for both the case and control groups:
-  if FLAGS.regimes_config == 0:
-    # regime specific mean parameters beta laws
-    mu_true = tf.Variable([0.99, 0.01, 0.80, 0.20, 0.50, 0.50],
-                          dtype = dtype, name = 'mu_true')
-    # regime specific standard-deviation parameters beta laws
-    sigma_true = tf.Variable(np.array([0.05, 0.05, 0.20, 0.20, 0.20, 1 / np.sqrt(12)]),
-                             dtype = dtype, name = 'sigma_true')
-  elif FLAGS.regimes_config == 1:
-    # regime specific mean parameters beta laws
-    mu_true = tf.Variable([0.95, 0.05, 0.85, 0.15, 0.50, 0.50],
-                          dtype = dtype, name = 'mu_true')
-    # regime specific standard-deviation parameters beta laws
-    sigma_true = tf.Variable(np.array([0.10, 0.10, 0.08, 0.08, 0.20, 1 / np.sqrt(12)]),
-                             dtype = dtype, name = 'sigma_true')
-  elif FLAGS.regimes_config == 2:
-    # regime specific mean parameters beta laws
-    mu_true = tf.Variable([0.95, 0.05, 0.85, 0.15, 0.50, 0.50],
-                          dtype = dtype, name = 'mu_true')
-    # regime specific standard-deviation parameters beta laws
-    sigma_true = tf.Variable(np.array([0.10, 0.10, 0.04, 0.04, 0.20, 1 / np.sqrt(12)]),
-                             dtype = dtype, name = 'sigma_true')
-  elif FLAGS.regimes_config == 3:
-    # regime specific mean parameters beta laws
-    mu_true = tf.Variable([0.95, 0.05, 0.85, 0.15, 0.50, 0.50],
-                          dtype = dtype, name = 'mu_true')
-    # regime specific standard-deviation parameters beta laws
-    sigma_true = tf.Variable(np.array([0.15, 0.15, 0.08, 0.08, 0.20, 1 / np.sqrt(12)]),
-                             dtype = dtype, name = 'sigma_true')
-  elif FLAGS.regimes_config == 4:
-    # regime specific mean parameters beta laws
-    mu_true = tf.Variable([0.95, 0.05, 0.85, 0.15, 0.50, 0.50],
+
+  # regime specific mean parameters beta laws
+  mu_true = tf.Variable(np.array(FLAGS.mu, dtype = np.float32),
                         dtype = dtype, name = 'mu_true')
-    # regime specific standard-deviation parameters beta laws
-    sigma_true = tf.Variable(np.array([0.15, 0.15, 0.04, 0.04, 0.20, 1/np.sqrt(12)]),
-                           dtype = dtype, name = 'sigma_true')
-  elif FLAGS.regimes_config == 5:
-    # regime specific mean parameters beta laws
-    mu_true = tf.Variable([0.99, 0.01, 0.80, 0.20, 0.50, 0.50],
-                          dtype = dtype, name = 'mu_true')
-    # regime specific standard-deviation parameters beta laws
-    sigma_true = tf.Variable(np.array([0.05, 0.05, 0.15, 0.15, 0.20, 1 / np.sqrt(12)]),
-                             dtype = dtype, name = 'sigma_true')
-  elif FLAGS.regimes_config == 6:
-    # regime specific mean parameters beta laws
-    mu_true = tf.Variable([0.95, 0.05, 0.85, 0.15, 0.50, 0.50],
-                          dtype = dtype, name = 'mu_true')
-    # regime specific standard-deviation parameters beta laws
-    sigma_true = tf.Variable(np.array([0.05, 0.05, 0.05, 0.05, 0.1, 1 / np.sqrt(12)]),
-                             dtype = dtype, name = 'sigma_true')
-  elif FLAGS.regimes_config == 7:
-    # regime specific mean parameters beta laws
-    mu_true = tf.Variable([0.99, 0.01, 0.80, 0.20, 0.50, 0.50, 0.50],
-                          dtype = dtype, name = 'mu_true')
-    # regime specific standard-deviation parameters beta laws
-    sigma_true = tf.Variable(np.array([0.05, 0.05, 0.15, 0.15, 0.20, 1 / np.sqrt(12),  1 / np.sqrt(6)]),
-                             dtype = dtype, name = 'sigma_true')
-  elif FLAGS.regimes_config == 8:
-    # regime specific mean parameters beta laws
-    mu_true = tf.Variable([0.95, 0.05, 0.80, 0.20, 0.50, 0.50],
-                          dtype = dtype, name = 'mu_true')
-    # regime specific standard-deviation parameters beta laws
-    sigma_true = tf.Variable(np.array([0.05, 0.05, 0.1, 0.1, 0.1, 1 / np.sqrt(12)]),
-                             dtype = dtype, name = 'sigma_true')
-  elif FLAGS.regimes_config == 9:
-    # regime specific mean parameters beta laws
-    mu_true = tf.Variable([0.95, 0.05, 0.75, 0.25, 0.50, 0.50],
-                          dtype = dtype, name = 'mu_true')
-    # regime specific standard-deviation parameters beta laws
-    sigma_true = tf.Variable(np.array([0.1, 0.1, 0.1, 0.1, 0.1, 1 / np.sqrt(12)]),
-                             dtype = dtype, name = 'sigma_true')
-  elif FLAGS.regimes_config == 10:
-    # regime specific mean parameters beta laws
-    mu_true = tf.Variable([0.95, 0.05, 0.80, 0.20, 0.50],
-                          dtype = dtype, name = 'mu_true')
-    # regime specific standard-deviation parameters beta laws
-    sigma_true = tf.Variable(np.array([0.05, 0.05, 0.1, 0.1, 0.1]),
-                             dtype = dtype, name = 'sigma_true')
+  # regime specific standard-deviation parameters beta laws
+  sigma_true = tf.Variable(np.array(FLAGS.sigma, dtype = np.float32),
+                            dtype = dtype, name = 'sigma_true')
 
   n_methylation_regimes = mu_true.shape[0]
 
@@ -229,19 +164,19 @@ def main(argv):
   #full chromosome data
   positions = pd.read_table(
     os.path.join(data_dir,
-                 'positions_{}.txt'.format(FLAGS.chrom)), sep = ' ', header = None)
+                 'positions_{}.txt'.format(FLAGS.chrom)), sep = ',', header = None)
   n_total_reads_control = pd.read_table(
     os.path.join(data_dir,
-                 'n_total_reads_control_{}.txt'.format(FLAGS.chrom)), sep = ' ', header = None)
+                 'n_total_reads_control_{}.txt'.format(FLAGS.chrom)), sep = ',', header = None)
   n_methylated_reads_control = pd.read_table(
     os.path.join(data_dir,
-                 'n_methylated_reads_control_{}.txt'.format(FLAGS.chrom)), sep = ' ', header = None)
+                 'n_methylated_reads_control_{}.txt'.format(FLAGS.chrom)), sep = ',', header = None)
   n_total_reads_case = pd.read_table(
     os.path.join(data_dir,
-                 'n_total_reads_case_{}.txt'.format(FLAGS.chrom)), sep = ' ', header = None)
+                 'n_total_reads_case_{}.txt'.format(FLAGS.chrom)), sep = ',', header = None)
   n_methylated_reads_case = pd.read_table(
     os.path.join(data_dir,
-                 'n_methylated_reads_case_{}.txt'.format(FLAGS.chrom)), sep = ' ', header = None)
+                 'n_methylated_reads_case_{}.txt'.format(FLAGS.chrom)), sep = ',', header = None)
 
 
   n_observations = n_total_reads_control.shape[0]
