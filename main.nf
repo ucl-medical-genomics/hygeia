@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 
-params.cpg_file_path = "/home/imoghul/d/hygeia/run_08_02_2024/data/ref/cpg.tsv.gz"
-params.sample_sheet = "/home/imoghul/d/hygeia/run_08_02_2024/data/t1d/sample_sheet.csv"
+params.cpg_file_path = "/home/imoghul/d/hygeia/data/ref/cpg.tsv.gz"
+params.sample_sheet = "/home/imoghul/d/hygeia/data/t1d/sample_sheet.csv"
 params.output_dir = "results"
 params.meteor_mu = "0.95,0.05,0.8,0.2,0.50,0.50"
 params.meteor_sigma = "0.05,0.05,0.1,0.1,0.1,0.2886751"
