@@ -3,7 +3,13 @@
 params.cpg_file_path = "/home/imoghul/d/hygeia/run_08_02_2024/data/ref/cpg.tsv.gz"
 params.sample_sheet = "/home/imoghul/d/hygeia/run_08_02_2024/data/t1d/sample_sheet.csv"
 params.output_dir = "results"
-params.chrom = 22
+params.meteor_mu = "0.95,0.05,0.8,0.2,0.50,0.50"
+params.meteor_sigma = "0.05,0.05,0.1,0.1,0.1,0.2886751"
+params.min_cpg_sites_between_change_points = 3
+
+Channel
+    .of(1..22)
+    .set { chroms }
 
 Channel
     .fromPath(params.sample_sheet)
@@ -29,6 +35,7 @@ process preprocess {
     path("preprocessed_data/n_methylated_reads_case_${chrom}.txt"), emit: n_methylated_reads_case_chr
     path("preprocessed_data/n_methylated_reads_control_${chrom}.txt"), emit: n_methylated_reads_control_chr
     path("preprocessed_data/cpg_sites_merged_${chrom}.txt"), emit: cpg_sites_merged_chr
+    val chrom, emit: chrom
 
     script:
     def caseIdArgs = case_ids.collect { "--case_id_names '$it'" }.join(" ")
@@ -66,13 +73,14 @@ process estimateParametersAndRegimes {
     path("single_group_estimation/kappa_${chrom}.csv"), emit: kappa_csv
     path("single_group_estimation/omega_${chrom}.csv"), emit: omega_csv
     path("single_group_estimation/theta_${chrom}.csv"), emit: theta_csv
+    val chrom, emit: chrom
 
     script:
     """
     hygeia estimate_parameters_and_regimes \
-        --mu 0.95,0.05,0.8,0.2,0.50,0.50 \
-        --sigma 0.05,0.05,0.1,0.1,0.1,0.2886751 \
-        --u 3 \
+        --mu ${params.meteor_mu} \
+        --sigma ${params.meteor_sigma} \
+        --u ${params.min_cpg_sites_between_change_points} \
         --n_methylated_reads_csv_file ${n_methylated_reads_control_chr} \
         --genomic_positions_csv_file ${positions_chr} \
         --n_total_reads_csv_file ${n_total_reads_control_chr} \
@@ -85,7 +93,6 @@ process estimateParametersAndRegimes {
         --estimate_regime_probabilities \
         --estimate_parameters
     """
-    // TODO - remove n_particles
 }
 
 process infer {
@@ -107,32 +114,31 @@ process infer {
     path kappa_csv
     path omega_csv
     path theta_csv
-
     val chrom
 
     output:
+    path("two_group_results_${chrom}/*")
+    val chrom, emit: chrom
 
     script:
     """
     hygeia infer \
-        --mu 0.95,0.05,0.8,0.2,0.50,0.50 \
-        --sigma 0.05,0.05,0.1,0.1,0.1,0.2886751 \
+        --mu ${params.meteor_mu} \
+        --sigma ${params.meteor_sigma} \
         --chrom ${chrom} \
         --single_group_dir ./ \
         --data_dir ./ \
-        --results_dir two_group_results
+        --results_dir two_group_results_${chrom}
     """
-
 }
 
-
 workflow {
-    preprocess(samples, params.cpg_file_path, params.chrom)
+    preprocess(samples, params.cpg_file_path, chroms)
     estimateParametersAndRegimes(
         preprocess.out.n_methylated_reads_control_chr,
         preprocess.out.positions_chr,
         preprocess.out.n_total_reads_control_chr,
-        params.chrom
+        preprocess.out.chrom
     )
     infer(
         preprocess.out.positions_chr,
@@ -147,7 +153,7 @@ workflow {
         estimateParametersAndRegimes.out.kappa_csv,
         estimateParametersAndRegimes.out.omega_csv,
         estimateParametersAndRegimes.out.theta_csv,
-        params.chrom
+        estimateParametersAndRegimes.out.chrom
     )
 }
 
