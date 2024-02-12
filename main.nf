@@ -65,8 +65,17 @@ process estimateParametersAndRegimes {
     path positions_chr
     path n_total_reads_control_chr
     val chrom
+    // just passing this forward...
+    path n_methylated_reads_case_chr
+    path n_total_reads_case_chr
+
 
     output:
+    path n_methylated_reads_control_chr, emit: n_methylated_reads_control_chr
+    path positions_chr, emit: positions_chr
+    path n_total_reads_control_chr, emit: n_total_reads_control_chr
+    path n_methylated_reads_case_chr, emit: n_methylated_reads_case_chr
+    path n_total_reads_case_chr, emit: n_total_reads_case_chr
     path("single_group_estimation/regimes_${chrom}.csv"), emit: regime_probabilities_csv
     path("single_group_estimation/theta_trace_${chrom}.csv"), emit: theta_trace_csv
     path("single_group_estimation/p_${chrom}.csv"), emit: p_csv
@@ -139,14 +148,16 @@ workflow {
         preprocess.out.positions_chr,
         preprocess.out.n_total_reads_control_chr,
         preprocess.out.chrom
+        preprocess.out.n_methylated_reads_case_chr
+        preprocess.out.n_total_reads_case_chr
     )
     infer(
-        preprocess.out.positions_chr,
-        preprocess.out.n_total_reads_case_chr,
-        preprocess.out.n_total_reads_control_chr,
-        preprocess.out.n_methylated_reads_case_chr,
-        preprocess.out.n_methylated_reads_control_chr,
-        preprocess.out.cpg_sites_merged_chr,
+        estimateParametersAndRegimes.out.positions_chr,
+        estimateParametersAndRegimes.out.n_total_reads_case_chr,
+        estimateParametersAndRegimes.out.n_total_reads_control_chr,
+        estimateParametersAndRegimes.out.n_methylated_reads_case_chr,
+        estimateParametersAndRegimes.out.n_methylated_reads_control_chr,
+        estimateParametersAndRegimes.out.cpg_sites_merged_chr,
         estimateParametersAndRegimes.out.regime_probabilities_csv,
         estimateParametersAndRegimes.out.theta_trace_csv,
         estimateParametersAndRegimes.out.p_csv,
@@ -156,4 +167,3 @@ workflow {
         estimateParametersAndRegimes.out.chrom
     )
 }
-
