@@ -147,8 +147,8 @@ workflow {
         preprocess.out.n_methylated_reads_control_chr,
         preprocess.out.positions_chr,
         preprocess.out.n_total_reads_control_chr,
-        preprocess.out.chrom
-        preprocess.out.n_methylated_reads_case_chr
+        preprocess.out.chrom,
+        preprocess.out.n_methylated_reads_case_chr,
         preprocess.out.n_total_reads_case_chr
     )
     infer(
