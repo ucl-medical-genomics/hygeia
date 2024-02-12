@@ -22,10 +22,6 @@ flags.DEFINE_list("mu",
 flags.DEFINE_list("sigma",
                      default='0.05,0.05,0.1,0.1,0.1,0.2886751',
                      help="sigma of the beta distribution")
-# TODO: Remove regimes_config as not used...
-flags.DEFINE_integer("regimes_config",
-                     default=8,
-                     help="[DEPRECIATED] regime configuration id for mean/stds of regime params")
 flags.DEFINE_integer("minimum_duration",
                      default=3,
                      help="minimum duration between change points")
@@ -68,7 +64,7 @@ flags.DEFINE_integer("seed",
 FLAGS = flags.FLAGS
 
 
-def get_estimated_control_group_param(chromosome, regimes_config, n_methylation_regimes):
+def get_estimated_control_group_param(chromosome, n_methylation_regimes):
   theta_data = pd.read_table(os.path.join(FLAGS.single_group_dir, 'theta_' + str(chromosome) + '.csv'), sep = ',')
   estimated_params = pd.to_numeric(theta_data['data']).to_numpy()
   p_softmax = np.zeros([n_methylation_regimes, n_methylation_regimes])
@@ -93,8 +89,8 @@ def main(argv):
   s = '\n'.join(f.serialize() for f in key_flags)
   print('specified flags:\n{}'.format(s))
   path = os.path.join(FLAGS.results_dir,
-                      'chrom_{}__config_{}'.format(
-                        flags.FLAGS.chrom, flags.FLAGS.regimes_config))
+                      'chrom_{}'.format(
+                        flags.FLAGS.chrom))
   if not os.path.exists(path):
     os.makedirs(path)
   flag_file = open(os.path.join(path, 'flags'+ str(FLAGS.seed)+'.txt'), "w")
@@ -127,7 +123,6 @@ def main(argv):
   # they are fixed to uniform
   # p_softmax = np.zeros([n_methylation_regimes,n_methylation_regimes])
   p_softmax, omega_logit_control = get_estimated_control_group_param(FLAGS.chrom,
-                                                              FLAGS.regimes_config,
                                                                n_methylation_regimes)
   P_softmax_control = tf.Variable(p_softmax, dtype = dtype, name = 'P_softmax_control')
 
