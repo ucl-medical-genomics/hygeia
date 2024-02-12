@@ -151,7 +151,7 @@ workflow {
         preprocess.out.n_total_reads_control_chr,
         preprocess.out.chrom,
         preprocess.out.n_methylated_reads_case_chr,
-        preprocess.out.n_total_reads_case_chr
+        preprocess.out.n_total_reads_case_chr,
         preprocess.out.cpg_sites_merged_chr
     )
     infer(
