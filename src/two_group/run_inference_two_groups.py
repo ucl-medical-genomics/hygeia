@@ -79,8 +79,9 @@ def get_estimated_control_group_param(chromosome, regimes_config, n_methylation_
         p_softmax[r,r1] = np.math.exp(estimated_params[i])
         i+=1
     p_softmax[r, :] = p_softmax[r, :] / np.sum(p_softmax[r,:])
-  omega_control = estimated_params[-n_methylation_regimes:]
-  return np.log(p_softmax), omega_control
+  omega_logit_control = estimated_params[-n_methylation_regimes:]
+  return np.log(p_softmax), omega_logit_control
+
 
 def main(argv):
   del argv  # unused
@@ -125,7 +126,7 @@ def main(argv):
   # we don't explicitly parameterise the regime transition matrix for the case group,
   # they are fixed to uniform
   # p_softmax = np.zeros([n_methylation_regimes,n_methylation_regimes])
-  p_softmax, omega_control = get_estimated_control_group_param(FLAGS.chrom,
+  p_softmax, omega_logit_control = get_estimated_control_group_param(FLAGS.chrom,
                                                               FLAGS.regimes_config,
                                                                n_methylation_regimes)
   P_softmax_control = tf.Variable(p_softmax, dtype = dtype, name = 'P_softmax_control')
@@ -135,12 +136,14 @@ def main(argv):
 
   ## success-probability parameters of the regime-specific negative-binomial distributions
   # governing the function h() which determines the change-point probabilities
-  # omega_true_control = 0.9 * np.ones([n_methylation_regimes])
-  omega_true_case = FLAGS.omega_case * np.ones([n_methylation_regimes])
-  omega_logit_control = tf.Variable(np.exp(omega_control) / (1 + np.exp(omega_control)),
-                                         name = 'omega_logit_control', dtype = dtype)
-  omega_logit_case = tf.Variable(np.exp(omega_true_case) / (1 + np.exp(omega_true_case)),
-                                      name = 'omega_logit_case', dtype = dtype)
+  omega_case = tf.Variable(FLAGS.omega_case * np.ones([n_methylation_regimes]), dtype = dtype)
+  omega_logit_control = tf.Variable(omega_logit_control, dtype = dtype)
+  def inv_logit(x):
+   return tf.math.exp(x)/(1+tf.math.exp(x))
+  omega_inv_logit_case = inv_logit(omega_case)
+  omega_control = inv_logit(omega_logit_control)
+  omega_inv_logit_control = inv_logit(omega_control)
+
   # minimum duration between change points
   minimum_duration = FLAGS.minimum_duration
 
@@ -200,7 +203,7 @@ def main(argv):
   #########
 
   generative_model = CaseControlRegimeModel(n_methylation_regimes, mu_true, sigma_true, P_softmax_control, P_softmax_merged,
-                                                 omega_logit_control, omega_logit_case, minimum_duration,
+                                                 omega_inv_logit_control, omega_inv_logit_case, minimum_duration,
                                                  kappa_true_control, kappa_true_case,
                                                  n_total_reads_control, n_total_reads_case)
 

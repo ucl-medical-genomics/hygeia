@@ -229,9 +229,9 @@ def main(argv):
   P_softmax_control = tf.Variable(p_softmax, dtype = dtype, name = 'P_softmax_control')
   ## success-probability parameters of the regime-specific negative-binomial distributions
   # governing the function h() which determines the change-point probabilities
-  omega_logit_control = tf.Variable(np.exp(omega_control) / (1 + np.exp(omega_control)),
+  omega_inv_logit_control = tf.Variable(np.exp(omega_control) / (1 + np.exp(omega_control)),
                                           name = 'omega_logit_control', dtype = dtype)
-  omega_logit_case = tf.Variable(np.exp(omega_case) / (1 + np.exp(omega_case)),
+  omega_inv_logit_case = tf.Variable(np.exp(omega_case) / (1 + np.exp(omega_case)),
                                       name = 'omega_logit_case', dtype = dtype)
 
 
@@ -261,7 +261,7 @@ def main(argv):
   #########
   generative_model = CaseControlRegimeModel(n_methylation_regimes, mu_true, sigma_true, P_softmax_control,
                                             P_softmax_merged,
-                                            omega_logit_control, omega_logit_case, minimum_duration,
+                                            omega_inv_logit_control, omega_inv_logit_case, minimum_duration,
                                             kappa_true_control, kappa_true_case,
                                             n_total_reads_control, n_total_reads_case)
 

@@ -50,8 +50,8 @@ class CaseControlRegimeModel:
                sigma_true,
                P_softmax_control,
                P_softmax_merged,
-               omega_logit_control,
-               omega_logit_case,
+               omega_inv_logit_control,
+               omega_inv_logit_case,
                minimum_duration,
                kappa_control,
                kappa_case,
@@ -64,8 +64,8 @@ class CaseControlRegimeModel:
     self._sigma_true = sigma_true
     self._P_softmax_control = P_softmax_control
     self._P_softmax_merged = P_softmax_merged
-    self._omega_logit_control = omega_logit_control
-    self._omega_logit_case = omega_logit_case
+    self._omega_inv_logit_control = omega_inv_logit_control
+    self._omega_inv_logit_case = omega_inv_logit_case
     self._minimum_duration = minimum_duration
     self._kappa_control = kappa_control
     self._kappa_case = kappa_case
@@ -110,14 +110,13 @@ class CaseControlRegimeModel:
 
     def next_duration_control_rho(self, previous_duration_control):
       previous_duration_control = tf.cast(previous_duration_control, self._dtype)
-      neg_bin_logits_control = tf.gather((self._omega_logit_control),
+      neg_bin_logits_control = tf.gather((self._omega_inv_logit_control),
                                      previous_regime_control)
       neg_bin_counts_control = tf.gather(self._kappa_control,
                                        previous_regime_control)
       h_control_dist = tfd.NegativeBinomial(total_count=neg_bin_counts_control,
                                           probs= tf.math.log(
                                               neg_bin_logits_control/(1-neg_bin_logits_control)))
-
       log_h_control = tf.where(previous_duration_control >= self._minimum_duration,
                            h_control_dist.log_prob(previous_duration_control - self._minimum_duration),
                            -np.Inf)
@@ -141,7 +140,7 @@ class CaseControlRegimeModel:
 
     def next_duration_case_rho(self, previous_duration_case):
       previous_duration_case = tf.cast(previous_duration_case, self._dtype)
-      neg_bin_logits_case = tf.gather(self._omega_logit_case,
+      neg_bin_logits_case = tf.gather(self._omega_inv_logit_case,
                                     previous_regime_case)
       neg_bin_counts_case = tf.gather(self._kappa_case,
                                        previous_regime_case)
