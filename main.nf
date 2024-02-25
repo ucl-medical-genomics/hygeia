@@ -1,15 +1,20 @@
 #!/usr/bin/env nextflow
 
 params.cpg_file_path = "/home/imoghul/d/hygeia/data/ref/cpg.tsv.gz"
-params.sample_sheet = "/home/imoghul/d/hygeia/data/t1d/sample_sheet.csv"
+params.sample_sheet = "/home/imoghul/d/hygeia/data/aging/sample_sheet.csv"
 params.output_dir = "results"
 params.meteor_mu = "0.95,0.05,0.8,0.2,0.50,0.50"
 params.meteor_sigma = "0.05,0.05,0.1,0.1,0.1,0.2886751"
 params.min_cpg_sites_between_change_points = 3
+params.num_of_inference_seeds = 3
 
 Channel
-    .of(1..22)
+    .of(22)
     .set { chroms }
+
+Channel
+    .of(0..10)
+    .set { inference_seeds }
 
 Channel
     .fromPath(params.sample_sheet)
@@ -126,10 +131,18 @@ process infer {
     path omega_csv
     path theta_csv
     val chrom
+    val inference_seed
 
     output:
-    path("two_group_results_${chrom}/*")
+    path("two_group_results_${chrom}/*"), emit: two_group_results
     val chrom, emit: chrom
+    // Passing this forward
+    path positions_chr, emit: positions_chr
+    path n_total_reads_case_chr, emit: n_total_reads_case_chr
+    path n_total_reads_control_chr, emit: n_total_reads_control_chr
+    path n_methylated_reads_case_chr, emit: n_methylated_reads_case_chr
+    path n_methylated_reads_control_chr, emit: n_methylated_reads_control_chr
+    path cpg_sites_merged_chr, emit: cpg_sites_merged_chr
 
     script:
     """
@@ -140,6 +153,55 @@ process infer {
         --single_group_dir ./ \
         --data_dir ./ \
         --results_dir two_group_results_${chrom}
+        --seed inference_seed
+    """
+}
+
+process aggregate_results {
+    container 'ucl-medical-genomics/hygeia_two_group'
+    publishDir "${params.output_dir}/aggregate", mode: 'copy'
+
+    input:
+    // preprocessed data output
+    path positions_chr
+    path n_total_reads_case_chr
+    path n_total_reads_control_chr
+    path n_methylated_reads_case_chr
+    path n_methylated_reads_control_chr
+    path cpg_sites_merged_chr
+    val chrom
+    path all_two_group_results
+
+    output:
+    path("aggregated_out_${chrom}"), emit: aggregated_out
+
+    script:
+    """
+    hygeia aggregate_results \
+        --data_dir ./ \
+        --results_dir aggregated_out_${chrom} \
+        --seeds ${params.num_of_inference_seeds} \
+        --chrom ${chrom} \
+        --output_dir ./ \
+        --num_particles 2400
+    """
+}
+
+process get_dmps {
+    container 'ucl-medical-genomics/hygeia_two_group'
+    publishDir "${params.output_dir}/dmps", mode: 'copy'
+
+    input:
+    path aggregated_out
+
+    output:
+    path "dmps", emit: dmps_out
+
+    script:
+    """
+    hygeia get_dmps \
+        --results_dir ./ \
+        --output_dir dmps
     """
 }
 
@@ -167,6 +229,20 @@ workflow {
         estimateParametersAndRegimes.out.kappa_csv,
         estimateParametersAndRegimes.out.omega_csv,
         estimateParametersAndRegimes.out.theta_csv,
-        estimateParametersAndRegimes.out.chrom
+        estimateParametersAndRegimes.out.chrom,
+        inference_seeds
+    )
+    aggregate_results(
+        infer.out.positions_chr,
+        infer.out.n_total_reads_case_chr,
+        infer.out.n_total_reads_control_chr,
+        infer.out.n_methylated_reads_case_chr,
+        infer.out.n_methylated_reads_control_chr,
+        infer.out.cpg_sites_merged_chr,
+        infer.out.chrom,
+        infer.out.two_group_results.collect()
+    )
+    get_dmps(
+        aggregate_results.out.aggregated_out
     )
 }
