@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 
 params.cpg_file_path = "/home/imoghul/d/hygeia/data/ref/cpg.tsv.gz"
-params.sample_sheet = "/home/imoghul/d/hygeia/data/aging/sample_sheet.csv"
+params.sample_sheet = "/scratch/imoghul/hygeia_data/aging/sample_sheet.csv"
 params.output_dir = "results"
 params.meteor_mu = "0.95,0.05,0.8,0.2,0.50,0.50"
 params.meteor_sigma = "0.05,0.05,0.1,0.1,0.1,0.2886751"
@@ -153,7 +153,7 @@ process infer {
         --single_group_dir ./ \
         --data_dir ./ \
         --results_dir two_group_results_${chrom}
-        --seed inference_seed
+        --seed ${inference_seed}
     """
 }
 
