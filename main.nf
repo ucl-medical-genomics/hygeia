@@ -1,19 +1,19 @@
 #!/usr/bin/env nextflow
 
-params.cpg_file_path = "/home/imoghul/d/hygeia/data/ref/cpg.tsv.gz"
+params.cpg_file_path = "/scratch/imoghul/hygeia_data/ref/cpg.tsv.gz"
 params.sample_sheet = "/scratch/imoghul/hygeia_data/aging/sample_sheet.csv"
 params.output_dir = "results"
 params.meteor_mu = "0.95,0.05,0.8,0.2,0.50,0.50"
 params.meteor_sigma = "0.05,0.05,0.1,0.1,0.1,0.2886751"
 params.min_cpg_sites_between_change_points = 3
-params.num_of_inference_seeds = 3
+params.num_of_inference_seeds = 2
 
 Channel
     .of(22)
     .set { chroms }
 
 Channel
-    .of(0..10)
+    .of(0..2)
     .set { inference_seeds }
 
 Channel
@@ -131,7 +131,7 @@ process infer {
     path omega_csv
     path theta_csv
     val chrom
-    val inference_seed
+    each inference_seed
 
     output:
     path("two_group_results_${chrom}/*"), emit: two_group_results
@@ -152,7 +152,7 @@ process infer {
         --chrom ${chrom} \
         --single_group_dir ./ \
         --data_dir ./ \
-        --results_dir two_group_results_${chrom}
+        --results_dir two_group_results_${chrom} \
         --seed ${inference_seed}
     """
 }
