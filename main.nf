@@ -170,19 +170,24 @@ process aggregate_results {
     path n_methylated_reads_control_chr
     path cpg_sites_merged_chr
     val chrom
-    path all_two_group_results
+    path all_two_group_results, stageAs: "out/**"
 
     output:
     path("aggregated_out_${chrom}"), emit: aggregated_out
 
     script:
     """
+    # Merge all the results into one folder
+    mkdir -p merged_out_${chrom}
+    for i in out/*/*; do
+        ln -f -s ../\$i "merged_out_${chrom}/\$(basename \$i)"
+    done
     hygeia aggregate_results \
         --data_dir ./ \
-        --results_dir aggregated_out_${chrom} \
+        --results_dir merged_out_${chrom} \
         --seeds ${params.num_of_inference_seeds} \
         --chrom ${chrom} \
-        --output_dir ./ \
+        --output_dir aggregated_out_${chrom} \
         --num_particles 2400
     """
 }
