@@ -32,9 +32,15 @@ case $SCRIPT_NAME in
     infer)
         exec python "${TWO_GROUP_DIR}/run_inference_two_groups.py" "$@"
         ;;
+        aggregate)
+        exec python "${TWO_GROUP_DIR}/aggregate_results.py" "$@"
+        ;;
+    get_dmps)
+        exec python "${TWO_GROUP_DIR}/get_dmps.py" "$@"
+        ;;
     *)
         echo "Invalid script name: $SCRIPT_NAME"
-        echo "Valid scripts are: specify_parameters, simulate_data, estimate_parameters_and_regimes preprocess infer"
+        echo "Valid scripts are: specify_parameters, simulate_data, estimate_parameters_and_regimes preprocess infer, aggregate and get_dmps"
         exit 2
         ;;
 esac

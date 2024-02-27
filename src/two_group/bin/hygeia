@@ -23,9 +23,15 @@ case $SCRIPT_NAME in
     infer)
         (python "${BASE_DIR}/run_inference_two_groups.py" "$@")
         ;;
+    aggregate)
+        (python "${BASE_DIR}/aggregate_results.py" "$@")
+        ;;
+    get_dmps)
+        (python "${BASE_DIR}/get_dmps.py" "$@")
+        ;;
     *)
         echo "Invalid script name: $SCRIPT_NAME"
-        echo "Valid options are: preprocess and infer"
+        echo "Valid options are: preprocess, infer, aggregate and get_dmps"
         exit 2
         ;;
 esac
