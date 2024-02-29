@@ -1,48 +1,38 @@
 # Hygeia
 
-> TODO: Finish Readme
+> [!note]
+>
+> Hygeia is still in Alpha. However, feel free to use the app on your data and
+> reach out to us if you need any help.
+>
 
 ## Requirements
 
-* Nextflow (https://www.nextflow.io/docs/latest/getstarted.html)
-* Docker
+* Nextflow [see here](https://www.nextflow.io/docs/latest/getstarted.html)
+* [Docker](https://www.docker.com/) / [Singularity](https://docs.sylabs.io/guides/3.7/user-guide/)
 
-## Single Group Analysis
+## Two Group Analysis
 
 To run the pipeline, after installing nextflow, you can run the following command. This will automatically download the latest version of the pipeline from Github.
 
 ### Run the pipeline with a config file (recommended)
 
 ```bash
-nextflow run ucl-medical-genomics/hygeia -entry SingleGroup/main.nf -c nextflow.config
+nextflow run ucl-medical-genomics/hygeia -c run.config
 ```
-
 
 > Note you can use -r <git_branch_name> to use a different github branch.
 
 You would need to create a config file with the following paramaters defined. You can also overwrite any parameters in the default nextflow config file.
 
 ```bash
-params {
-    base_output_dir = "./result"
-    params_data_dir = "params"
-    simulated_data_dir = "simulated_data"
-    regimes_dir = "regimes"
-
-    input_mu_csv_path = null
-    input_sigma_csv_path = null
-    input_omega_csv_path = null
-    input_kappa_csv_path = null
-    input_u_csv_path = null
-    input_p_csv_path = null
-
-    regimes_csv_path = null
-    n_methylated_reads_csv = null
-    genomic_positions_csv = null
-    n_total_reads_csv = null
-    regime_probabilities_csv = null
-    theta_trace_csv = null
-}
+params.cpg_file_path = "/scratch/imoghul/hygeia_data/ref/cpg.tsv.gz"
+params.sample_sheet = "/scratch/imoghul/hygeia_data/aging/sample_sheet.csv"
+params.output_dir = "results"
+params.meteor_mu = "0.95,0.05,0.8,0.2,0.50,0.50"
+params.meteor_sigma = "0.05,0.05,0.1,0.1,0.1,0.2886751"
+params.min_cpg_sites_between_change_points = 3
+params.num_of_inference_seeds = 2
 ```
 
 Run the pipeline without a config file
@@ -50,10 +40,13 @@ All the paramaters in the config file can be set via the CLI. This may be useful
 
 ```bash
 nextflow run ucl-medical-genomics/hygeia \
-  --base_output_dir /path/to/output/ \
-  --params_data_dir params \
-  --simulated_data_dir simulated_data \
-  --regimes_dir regimes / \
+  --cpg_file_path "/scratch/imoghul/hygeia_data/ref/cpg.tsv.gz" \
+  --sample_sheet "/scratch/imoghul/hygeia_data/aging/sample_sheet.csv" \
+  --output_dir "results" \
+  --meteor_mu "0.95,0.05,0.8,0.2,0.50,0.50" \
+  --meteor_sigma "0.05,0.05,0.1,0.1,0.1,0.2886751" \
+  --min_cpg_sites_between_change_points 3 \
+  --num_of_inference_seeds 2 \
   -with-report report.html -with-dag flowchart.pdf
 ```
 
@@ -94,6 +87,8 @@ docker push ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.0.1
 ```
 
 # Tutorial - Run Single Group analysis with NA12878
+
+> TODO: Complete Tutorial
 
 1. Download data
 
