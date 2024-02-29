@@ -25,7 +25,7 @@ Channel
     .set { samples }
 
 process preprocess {
-    container 'ucl-medical-genomics/hygeia_two_group'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:0.0.1'
     publishDir "${params.output_dir}", mode: 'copy'
 
     input:
@@ -61,8 +61,7 @@ process preprocess {
 }
 
 process estimateParametersAndRegimes {
-    // container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:0.0.1'
-    container 'ucl-medical-genomics/hygeia_single_group'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:0.0.1'
     publishDir "${params.output_dir}/estimatedParamatersAndRegimes", mode: 'copy'
 
     input:
@@ -112,7 +111,7 @@ process estimateParametersAndRegimes {
 }
 
 process infer {
-    container 'ucl-medical-genomics/hygeia_two_group'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:0.0.1'
     publishDir "${params.output_dir}/two_group", mode: 'copy'
 
     input:
@@ -158,7 +157,7 @@ process infer {
 }
 
 process aggregate_results {
-    container 'ucl-medical-genomics/hygeia_two_group'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:0.0.1' 
     publishDir "${params.output_dir}/aggregate", mode: 'copy'
 
     input:
@@ -182,7 +181,7 @@ process aggregate_results {
     for i in out/*/*; do
         ln -f -s ../\$i "merged_out_${chrom}/\$(basename \$i)"
     done
-    hygeia aggregate_results \
+    hygeia aggregate \
         --data_dir ./ \
         --results_dir merged_out_${chrom} \
         --seeds ${params.num_of_inference_seeds} \
@@ -193,7 +192,7 @@ process aggregate_results {
 }
 
 process get_dmps {
-    container 'ucl-medical-genomics/hygeia_two_group'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:0.0.1'
     publishDir "${params.output_dir}/dmps", mode: 'copy'
 
     input:
