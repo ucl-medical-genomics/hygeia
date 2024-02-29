@@ -25,7 +25,7 @@ Channel
     .set { samples }
 
 process preprocess {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:0.0.1'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.0.1'
     publishDir "${params.output_dir}", mode: 'copy'
 
     input:
@@ -61,7 +61,7 @@ process preprocess {
 }
 
 process estimateParametersAndRegimes {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:0.0.1'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.0.1'
     publishDir "${params.output_dir}/estimatedParamatersAndRegimes", mode: 'copy'
 
     input:
@@ -111,7 +111,7 @@ process estimateParametersAndRegimes {
 }
 
 process infer {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:0.0.1'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.0.1'
     publishDir "${params.output_dir}/two_group", mode: 'copy'
 
     input:
@@ -157,7 +157,7 @@ process infer {
 }
 
 process aggregate_results {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:0.0.1' 
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.0.1' 
     publishDir "${params.output_dir}/aggregate", mode: 'copy'
 
     input:
@@ -192,7 +192,7 @@ process aggregate_results {
 }
 
 process get_dmps {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:0.0.1'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.0.1'
     publishDir "${params.output_dir}/dmps", mode: 'copy'
 
     input:
