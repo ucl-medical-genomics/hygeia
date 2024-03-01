@@ -8,7 +8,7 @@ import os
 import sys
 from absl import flags
 import pdb
-
+from pathlib import Path
 
 flags.DEFINE_string(
     'data_dir',
@@ -174,4 +174,3 @@ case_durations_chrom = pd.concat(case_durations_)
 case_durations_chrom = case_durations_chrom.set_index(positions_chrom['pos'])
 case_durations_chrom.to_csv(
 os.path.join(output_dir, 'case_durations_chrom_{}.csv'.format(chrom)), sep = '\t')
-
