@@ -84,13 +84,13 @@ case_durations__ = []  # np.empty((positions__.shape[0], 0, 2))
 for seed in range(0, FLAGS.seeds):
 
     merged_states = np.load(os.path.join(
-    FLAGS.results_dir, 'chrom_{}__id_{}'.format(chrom, id),
+    FLAGS.results_dir,
     'optimal_backward_particles_merged_state_{}_{}.npy'.format(N, seed)))
     control_states = np.load(os.path.join(
-    FLAGS.results_dir, 'chrom_{}__id_{}'.format(chrom, id),
+    FLAGS.results_dir,
     'optimal_backward_particles_control_state_{}_{}.npy'.format(N, seed)))
     case_states = np.load(os.path.join(
-    FLAGS.results_dir, 'chrom_{}__id_{}'.format(chrom, id),
+    FLAGS.results_dir,
     'optimal_backward_particles_case_state_{}_{}.npy'.format(N, seed)))
     merged_states__.append(merged_states)
     control_states__.append(control_states)
@@ -174,3 +174,4 @@ case_durations_chrom = pd.concat(case_durations_)
 case_durations_chrom = case_durations_chrom.set_index(positions_chrom['pos'])
 case_durations_chrom.to_csv(
 os.path.join(output_dir, 'case_durations_chrom_{}.csv'.format(chrom)), sep = '\t')
+
