@@ -237,13 +237,13 @@ workflow {
         inference_seeds
     )
     aggregate_results(
-        infer.out.positions_chr,
-        infer.out.n_total_reads_case_chr,
-        infer.out.n_total_reads_control_chr,
-        infer.out.n_methylated_reads_case_chr,
-        infer.out.n_methylated_reads_control_chr,
-        infer.out.cpg_sites_merged_chr,
-        infer.out.chrom,
+        infer.out.positions_chr.first(),
+        infer.out.n_total_reads_case_chr.first(),
+        infer.out.n_total_reads_control_chr.first(),
+        infer.out.n_methylated_reads_case_chr.first(),
+        infer.out.n_methylated_reads_control_chr.first(),
+        infer.out.cpg_sites_merged_chr.first(),
+        infer.out.chrom.first(),
         infer.out.two_group_results.collect()
     )
     get_dmps(
