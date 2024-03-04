@@ -173,6 +173,7 @@ process aggregate_results {
 
     output:
     path("aggregated_out_${chrom}"), emit: aggregated_out
+    val chrom, emit: chrom
 
     script:
     """
@@ -197,6 +198,7 @@ process get_dmps {
 
     input:
     path aggregated_out
+    val chrom
 
     output:
     path "dmps", emit: dmps_out
@@ -204,8 +206,9 @@ process get_dmps {
     script:
     """
     hygeia get_dmps \
-        --results_dir ./ \
-        --output_dir dmps
+        --results_dir aggregated_out_${chrom} \
+        --output_dir dmps \
+        --chrom ${chrom}
     """
 }
 
@@ -247,6 +250,7 @@ workflow {
         infer.out.two_group_results.collect()
     )
     get_dmps(
-        aggregate_results.out.aggregated_out
+        aggregate_results.out.aggregated_out,
+        aggregate_results.out.chrom
     )
 }
