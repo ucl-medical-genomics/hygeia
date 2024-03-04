@@ -26,13 +26,15 @@ flags.DEFINE_integer(
     'n_regimes',
     default=6,
     help="number of regimes.")
+flags.DEFINE_integer("chrom",
+                      default=22,
+                      help="which chormosome to analyse")
+
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
 
 n_regimes = FLAGS.n_regimes
-if not os.path.exists(FLAGS.output_dir):
-    os.makedirs(FLAGS.output_dir)
-output_dir = output_dir
+output_dir = FLAGS.output_dir
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
@@ -52,31 +54,30 @@ for i in range(n_regimes):
     if i != j:
       test_stats_regimes[(i,j)] = []
 
-for chrom in range(0,23):
-  print(chrom)
-  path = FLAGS.results_dir
-  control_regimes_ = pd.read_csv(os.path.join(path, 'control_regimes_chrom_{}.csv'.format(chrom)), sep = '\t')
-  control_regimes_ = (control_regimes_.set_index('pos')).to_numpy()
-  case_regimes_ = pd.read_csv(os.path.join(path, 'case_regimes_chrom_{}.csv'.format(chrom)), sep = '\t')
-  case_regimes_ = (case_regimes_.set_index('pos')).to_numpy()
-  num_particles = control_regimes_.shape[-1]
-  test_statistics_split.append(
-    1. - np.sum(dm_state(control_regimes_, case_regimes_), axis = 1) / num_particles)
+chrom = FLAGS.chrom
+path = FLAGS.results_dir
+control_regimes_ = pd.read_csv(os.path.join(path, 'control_regimes_chrom_{}.csv'.format(chrom)), sep = '\t')
+control_regimes_ = (control_regimes_.set_index('pos')).to_numpy()
+case_regimes_ = pd.read_csv(os.path.join(path, 'case_regimes_chrom_{}.csv'.format(chrom)), sep = '\t')
+case_regimes_ = (case_regimes_.set_index('pos')).to_numpy()
+num_particles = control_regimes_.shape[-1]
+test_statistics_split.append(
+  1. - np.sum(dm_state(control_regimes_, case_regimes_), axis = 1) / num_particles)
 
-  for i in range(n_regimes):
-    for j in range(n_regimes):
-      if i != j:
-        test_stats_regimes[(i,j)].append(1 - np.sum((control_regimes_==i) * (case_regimes_==j), axis = 1) / num_particles)
+for i in range(n_regimes):
+  for j in range(n_regimes):
+    if i != j:
+      test_stats_regimes[(i,j)].append(1 - np.sum((control_regimes_==i) * (case_regimes_==j), axis = 1) / num_particles)
 
 
-  split_probs_ = pd.read_csv(os.path.join(path, 'split_probs_{}.csv'.format(chrom)), sep = '\t')
-  split_probs_ = split_probs_.set_index('pos')
-  position_diffs_ = 1/3*(pd.DataFrame(split_probs_.index).diff(1)+pd.DataFrame(
-    split_probs_.index).diff(2)+pd.DataFrame(split_probs_.index).diff(3))
-  position_diffs.append(position_diffs_)
-  positions_ = pd.DataFrame(split_probs_.index)
-  positions_['chrom'] = chrom
-  positions.append(positions_)
+split_probs_ = pd.read_csv(os.path.join(path, 'split_probs_{}.csv'.format(chrom)), sep = '\t')
+split_probs_ = split_probs_.set_index('pos')
+position_diffs_ = 1/3*(pd.DataFrame(split_probs_.index).diff(1)+pd.DataFrame(
+  split_probs_.index).diff(2)+pd.DataFrame(split_probs_.index).diff(3))
+position_diffs.append(position_diffs_)
+positions_ = pd.DataFrame(split_probs_.index)
+positions_['chrom'] = chrom
+positions.append(positions_)
 
 positions = pd.concat(positions)
 position_diffs = pd.concat(position_diffs)
