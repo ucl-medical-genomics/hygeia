@@ -102,9 +102,9 @@ for fdr_threshold in FLAGS.fdr_thresholds:
   dmp_indicator = test_statistics_split < threshold
   dmp_stats = test_statistics_split[dmp_indicator]
   dmp_pos = positions.to_numpy()[dmp_indicator]
-  dmp = pd.DataFrame({'position': dmp_pos[:,0], 'chrom': dmp_pos[:,1], 'null_stats': dmp_stats})
+  dmp = pd.DataFrame({'chrom': dmp_pos[:,1], 'position': dmp_pos[:,0], 'null_stats': dmp_stats})
   dmp['false_negative_weight'] = 1.
-  dmp.to_csv(os.path.join(output_dir, 'dmp_{}.csv'.format(fdr_threshold)))
+  dmp.to_csv(os.path.join(output_dir, 'dmp_{}.csv'.format(fdr_threshold)), index=False)
 
   for i in range(n_regimes):
     for j in range(n_regimes):
@@ -113,9 +113,9 @@ for fdr_threshold in FLAGS.fdr_thresholds:
         dmp_indicator = test_stats_regimes[(i,j)] < threshold
         dmp_stats = test_stats_regimes[(i,j)][dmp_indicator]
         dmp_pos = positions.to_numpy()[dmp_indicator]
-        dmp = pd.DataFrame({'position': dmp_pos[:,0], 'chrom': dmp_pos[:,1], 'null_stats': dmp_stats})
+        dmp = pd.DataFrame({'chrom': dmp_pos[:,1], 'position': dmp_pos[:,0], 'null_stats': dmp_stats})
         dmp['false_negative_weight'] = 1.
-        dmp.to_csv(os.path.join(output_dir, 'dmp_{}_{}_{}.csv'.format(i,j,fdr_threshold)))
+        dmp.to_csv(os.path.join(output_dir, 'dmp_{}_{}_{}.csv'.format(i,j,fdr_threshold)), index=False)
 
 
 
@@ -126,9 +126,9 @@ for fdr_threshold in FLAGS.fdr_thresholds:
   dmp_index = np.sort(dmp_index)
   dmp_stats = test_statistics_split[dmp_index]
   dmp_pos = positions.to_numpy()[dmp_index]
-  dmp = pd.DataFrame({'position': dmp_pos[:,0], 'chrom': dmp_pos[:,1], 'null_stats': dmp_stats})
+  dmp = pd.DataFrame({'chrom': dmp_pos[:,1], 'position': dmp_pos[:,0], 'null_stats': dmp_stats})
   dmp['false_negative_weight'] = false_negative_weights[dmp_index]
-  dmp.to_csv(os.path.join(output_dir, 'weighted_dmp_{}.csv'.format(fdr_threshold)))
+  dmp.to_csv(os.path.join(output_dir, 'weighted_dmp_{}.csv'.format(fdr_threshold)), index=False)
 
   for i in range(n_regimes):
     for j in range(n_regimes):
@@ -139,8 +139,8 @@ for fdr_threshold in FLAGS.fdr_thresholds:
         dmp_index = np.sort(dmp_index)
         dmp_stats = test_stats_regimes[(i, j)][dmp_index]
         dmp_pos = positions.to_numpy()[dmp_index]
-        dmp = pd.DataFrame({'position': dmp_pos[:,0], 'chrom': dmp_pos[:,1], 'null_stats': dmp_stats})
+        dmp = pd.DataFrame({'chrom': dmp_pos[:,1], 'position': dmp_pos[:,0], 'null_stats': dmp_stats})
         dmp['false_negative_weight'] = false_negative_weights[dmp_index]
-        dmp.to_csv(os.path.join(output_dir, 'weighted_dmp_{}_{}_{}.csv'.format(i,j,fdr_threshold)))
+        dmp.to_csv(os.path.join(output_dir, 'weighted_dmp_{}_{}_{}.csv'.format(i,j,fdr_threshold)), index=False)
 
 
