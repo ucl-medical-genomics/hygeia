@@ -7,6 +7,7 @@ params.meteor_mu = "0.95,0.05,0.8,0.2,0.50,0.50"
 params.meteor_sigma = "0.05,0.05,0.1,0.1,0.1,0.2886751"
 params.min_cpg_sites_between_change_points = 3
 params.num_of_inference_seeds = 2
+params.debug = true  // Add a debug parameter
 
 Channel
     .of(22)
@@ -26,7 +27,10 @@ Channel
 
 process preprocess {
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.0.2'
-    publishDir "${params.output_dir}", mode: 'copy'
+    publishDir "${params.output_dir}/${chrom}", mode: 'copy'
+
+    cpus 4
+    memory '24 GB'
 
     input:
     tuple val(case_group), val(case_ids), path(case_files), val(control_group), val(control_ids), path(control_files)
@@ -43,26 +47,41 @@ process preprocess {
     val chrom, emit: chrom
 
     script:
-    def caseIdArgs = case_ids.collect { "--case_id_names '$it'" }.join(" ")
-    def caseFileArgs = case_files.collect { "--case_data_path '$it'" }.join(" ")
-    def controlIdArgs = control_ids.collect { "--control_id_names '$it'" }.join(" ")
-    def controlFileArgs = control_files.collect { "--control_data_path '$it'" }.join(" ")
+    if (params.debug) {
+        """
+        mkdir -p preprocessed_data
+        touch preprocessed_data/positions_${chrom}.txt
+        touch preprocessed_data/n_total_reads_case_${chrom}.txt
+        touch preprocessed_data/n_total_reads_control_${chrom}.txt
+        touch preprocessed_data/n_methylated_reads_case_${chrom}.txt
+        touch preprocessed_data/n_methylated_reads_control_${chrom}.txt
+        touch preprocessed_data/cpg_sites_merged_${chrom}.txt
+        """
+    } else {
+        def caseIdArgs = case_ids.collect { "--case_id_names '$it'" }.join(" ")
+        def caseFileArgs = case_files.collect { "--case_data_path '$it'" }.join(" ")
+        def controlIdArgs = control_ids.collect { "--control_id_names '$it'" }.join(" ")
+        def controlFileArgs = control_files.collect { "--control_data_path '$it'" }.join(" ")
 
-    """
-    hygeia preprocess \
-        ${caseIdArgs} \
-        ${caseFileArgs} \
-        ${controlIdArgs} \
-        ${controlFileArgs} \
-        --cpg_file_path ${cpg_file_path} \
-        --output_path preprocessed_data \
-        --chrom ${chrom}
-    """
+        """
+        hygeia preprocess \
+            ${caseIdArgs} \
+            ${caseFileArgs} \
+            ${controlIdArgs} \
+            ${controlFileArgs} \
+            --cpg_file_path ${cpg_file_path} \
+            --output_path preprocessed_data \
+            --chrom ${chrom}
+        """
+    }
 }
 
 process estimateParametersAndRegimes {
     container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.0.1'
-    publishDir "${params.output_dir}/estimatedParamatersAndRegimes", mode: 'copy'
+    publishDir "${params.output_dir}/${chrom}/estimatedParamatersAndRegimes", mode: 'copy'
+
+    cpus 4
+    memory '24 GB'
 
     input:
     path n_methylated_reads_control_chr
@@ -73,7 +92,6 @@ process estimateParametersAndRegimes {
     path n_methylated_reads_case_chr
     path n_total_reads_case_chr
     path cpg_sites_merged_chr
-
 
     output:
     path n_methylated_reads_control_chr, emit: n_methylated_reads_control_chr
@@ -91,28 +109,43 @@ process estimateParametersAndRegimes {
     val chrom, emit: chrom
 
     script:
-    """
-    hygeia estimate_parameters_and_regimes \
-        --mu ${params.meteor_mu} \
-        --sigma ${params.meteor_sigma} \
-        --u ${params.min_cpg_sites_between_change_points} \
-        --n_methylated_reads_csv_file ${n_methylated_reads_control_chr} \
-        --genomic_positions_csv_file ${positions_chr} \
-        --n_total_reads_csv_file ${n_total_reads_control_chr} \
-        --regime_probabilities_csv_file single_group_estimation/regimes_${chrom}.csv \
-        --theta_trace_csv_file single_group_estimation/theta_trace_${chrom}.csv \
-        --p_csv_file single_group_estimation/p_${chrom}.csv \
-        --kappa_csv_file single_group_estimation/kappa_${chrom}.csv \
-        --omega_csv_file single_group_estimation/omega_${chrom}.csv \
-        --theta_file single_group_estimation/theta_${chrom}.csv \
-        --estimate_regime_probabilities \
-        --estimate_parameters
-    """
+    if (params.debug) {
+        """
+        mkdir -p single_group_estimation
+        touch single_group_estimation/regimes_${chrom}.csv
+        touch single_group_estimation/theta_trace_${chrom}.csv
+        touch single_group_estimation/p_${chrom}.csv
+        touch single_group_estimation/kappa_${chrom}.csv
+        touch single_group_estimation/omega_${chrom}.csv
+        touch single_group_estimation/theta_${chrom}.csv
+        """
+    } else {
+        """
+        hygeia estimate_parameters_and_regimes \
+            --mu ${params.meteor_mu} \
+            --sigma ${params.meteor_sigma} \
+            --u ${params.min_cpg_sites_between_change_points} \
+            --n_methylated_reads_csv_file ${n_methylated_reads_control_chr} \
+            --genomic_positions_csv_file ${positions_chr} \
+            --n_total_reads_csv_file ${n_total_reads_control_chr} \
+            --regime_probabilities_csv_file single_group_estimation/regimes_${chrom}.csv \
+            --theta_trace_csv_file single_group_estimation/theta_trace_${chrom}.csv \
+            --p_csv_file single_group_estimation/p_${chrom}.csv \
+            --kappa_csv_file single_group_estimation/kappa_${chrom}.csv \
+            --omega_csv_file single_group_estimation/omega_${chrom}.csv \
+            --theta_file single_group_estimation/theta_${chrom}.csv \
+            --estimate_regime_probabilities \
+            --estimate_parameters
+        """
+    }
 }
 
 process infer {
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.0.2'
-    publishDir "${params.output_dir}/two_group", mode: 'copy'
+    publishDir "${params.output_dir}/${chrom}/inference_out", mode: 'copy'
+
+    cpus 48
+    memory '100 GB'
 
     input:
     // preprocessed data output
@@ -133,7 +166,7 @@ process infer {
     each inference_seed
 
     output:
-    path("two_group_results_${chrom}/*"), emit: two_group_results
+    path("infer_out_${chrom}_${inference_seed}/*"), emit: two_group_results
     val chrom, emit: chrom
     // Passing this forward
     path positions_chr, emit: positions_chr
@@ -144,21 +177,31 @@ process infer {
     path cpg_sites_merged_chr, emit: cpg_sites_merged_chr
 
     script:
-    """
-    hygeia infer \
-        --mu ${params.meteor_mu} \
-        --sigma ${params.meteor_sigma} \
-        --chrom ${chrom} \
-        --single_group_dir ./ \
-        --data_dir ./ \
-        --results_dir two_group_results_${chrom} \
-        --seed ${inference_seed}
-    """
+    if (params.debug) {
+        """
+        mkdir -p infer_out_${chrom}_${inference_seed}
+        touch infer_out_${chrom}_${inference_seed}/dummy_file
+        """
+    } else {
+        """
+        hygeia infer \
+            --mu ${params.meteor_mu} \
+            --sigma ${params.meteor_sigma} \
+            --chrom ${chrom} \
+            --single_group_dir ./ \
+            --data_dir ./ \
+            --results_dir infer_out_${chrom}_${inference_seed} \
+            --seed ${inference_seed}
+        """
+    }
 }
 
 process aggregate_results {
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.0.2' 
     publishDir "${params.output_dir}/aggregate", mode: 'copy'
+
+    cpus 8
+    memory '24 GB'
 
     input:
     // preprocessed data output
@@ -176,26 +219,34 @@ process aggregate_results {
     val chrom, emit: chrom
 
     script:
-    """
-    # Merge all the results into one folder
-    mkdir -p merged_out_${chrom}
-    for i in out/*/*; do
-        ln -f -s ../\$i "merged_out_${chrom}/\$(basename \$i)"
-    done
-    hygeia aggregate \
-        --data_dir ./ \
-        --results_dir merged_out_${chrom} \
-        --seeds ${params.num_of_inference_seeds} \
-        --chrom ${chrom} \
-        --output_dir aggregated_out_${chrom} \
-        --num_particles 2400
-    """
+    if (params.debug) {
+        """
+        mkdir -p aggregated_out_${chrom}
+        touch aggregated_out_${chrom}/dummy_file
+        """
+    } else {
+        """
+        # Merge all the results into one folder
+        mkdir -p merged_out_${chrom}
+        for i in out/*/*; do
+            ln -f -s ../\$i "merged_out_${chrom}/\$(basename \$i)"
+        done
+        hygeia aggregate \
+            --data_dir ./ \
+            --results_dir merged_out_${chrom} \
+            --seeds ${params.num_of_inference_seeds} \
+            --chrom ${chrom} \
+            --output_dir aggregated_out_${chrom} \
+            --num_particles 2400
+        """
+    }
 }
 
 process get_dmps {
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.0.2'
     publishDir "${params.output_dir}/dmps", mode: 'copy'
-
+    cpus 8 
+    memory '24 GB'
     input:
     path aggregated_out
     val chrom
@@ -204,12 +255,19 @@ process get_dmps {
     path "dmps", emit: dmps_out
 
     script:
-    """
-    hygeia get_dmps \
-        --results_dir aggregated_out_${chrom} \
-        --output_dir dmps \
-        --chrom ${chrom}
-    """
+    if (params.debug) {
+        """
+        mkdir -p dmps
+        touch dmps/dummy_file
+        """
+    } else {
+        """
+        hygeia get_dmps \
+            --results_dir aggregated_out_${chrom} \
+            --output_dir dmps \
+            --chrom ${chrom}
+        """
+    }
 }
 
 workflow {
