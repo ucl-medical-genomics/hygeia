@@ -1,14 +1,5 @@
 #!/usr/bin/env nextflow
 
-params.cpg_file_path = "/scratch/imoghul/hygeia_data/ref/cpg.tsv.gz"
-params.sample_sheet = "/scratch/imoghul/hygeia_data/aging/sample_sheet.csv"
-params.output_dir = "results"
-params.meteor_mu = "0.95,0.05,0.8,0.2,0.50,0.50"
-params.meteor_sigma = "0.05,0.05,0.1,0.1,0.1,0.2886751"
-params.min_cpg_sites_between_change_points = 3
-params.num_of_inference_seeds = 2
-params.debug = true  // Add a debug parameter
-
 process preprocess {
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.0.2'
     publishDir "${params.output_dir}", mode: 'copy'
@@ -134,7 +125,7 @@ process estimateParametersAndRegimes {
 
 process infer {
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.0.2'
-    publishDir "${params.output_dir}/two_group_output", mode: 'copy'
+    publishDir "${params.output_dir}/two_group_output", mode: 'copy', pattern: "infer_out_${chrom}_${inference_seed}/*"
 
     cpus 48
     memory '100 GB'
@@ -262,7 +253,7 @@ process aggregate_results {
 
 process get_dmps {
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.0.2'
-    publishDir "${params.output_dir}/", mode: 'copy'
+    publishDir "${params.output_dir}/dmps/", mode: 'copy'
 
     cpus 8 
     memory '24 GB'
@@ -274,19 +265,19 @@ process get_dmps {
     )
 
     output:
-    path "dmps"
+    path "dmps_${chrom}"
 
     script:
     if (params.debug) {
         """
-        mkdir -p dmps
-        touch dmps/dummy_file
+        mkdir -p dmps_${chrom}
+        touch dmps_${chrom}/dummy_file
         """
     } else {
         """
         hygeia get_dmps \
             --results_dir aggregated_out_${chrom} \
-            --output_dir dmps \
+            --output_dir dmps_${chrom} \
             --chrom ${chrom}
         """
     }
@@ -294,11 +285,11 @@ process get_dmps {
 
 workflow {
     Channel
-        .of(1..22)
+        .of(params.chroms.split(','))
         .set { chroms }
 
     Channel
-        .of(0..1)
+        .of(0..params.num_of_inference_seeds - 1)
         .set { inference_seeds }
 
     Channel
