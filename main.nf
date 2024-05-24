@@ -7,11 +7,11 @@ params.meteor_mu = "0.95,0.05,0.8,0.2,0.50,0.50"
 params.meteor_sigma = "0.05,0.05,0.1,0.1,0.1,0.2886751"
 params.min_cpg_sites_between_change_points = 3
 params.num_of_inference_seeds = 2
-params.debug = false  // Add a debug parameter
+params.debug = true  // Add a debug parameter
 
 process preprocess {
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.0.2'
-    publishDir "${params.output_dir}/${chrom}", mode: 'copy'
+    publishDir "${params.output_dir}", mode: 'copy'
 
     cpus 4
     memory '24 GB'
@@ -65,7 +65,7 @@ process preprocess {
 
 process estimateParametersAndRegimes {
     container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.0.1'
-    publishDir "${params.output_dir}/${chrom}/estimatedParamatersAndRegimes", mode: 'copy'
+    publishDir "${params.output_dir}", mode: 'copy', pattern: 'single_group_estimation/*'
 
     cpus 4
     memory '24 GB'
@@ -134,7 +134,7 @@ process estimateParametersAndRegimes {
 
 process infer {
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.0.2'
-    publishDir "${params.output_dir}/${chrom}/inference_out", mode: 'copy'
+    publishDir "${params.output_dir}/two_group_output", mode: 'copy'
 
     cpus 48
     memory '100 GB'
@@ -203,7 +203,7 @@ process infer {
 
 process aggregate_results {
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.0.2' 
-    publishDir "${params.output_dir}/${chrom}", mode: 'copy'
+    publishDir "${params.output_dir}/aggregated", mode: 'copy'
 
     cpus 8
     memory '24 GB'
@@ -262,7 +262,7 @@ process aggregate_results {
 
 process get_dmps {
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.0.2'
-    publishDir "${params.output_dir}/${chrom}", mode: 'copy'
+    publishDir "${params.output_dir}/", mode: 'copy'
 
     cpus 8 
     memory '24 GB'
