@@ -7,23 +7,7 @@ params.meteor_mu = "0.95,0.05,0.8,0.2,0.50,0.50"
 params.meteor_sigma = "0.05,0.05,0.1,0.1,0.1,0.2886751"
 params.min_cpg_sites_between_change_points = 3
 params.num_of_inference_seeds = 2
-params.debug = true  // Add a debug parameter
-
-Channel
-    .of(22)
-    .set { chroms }
-
-Channel
-    .of(0..2)
-    .set { inference_seeds }
-
-Channel
-    .fromPath(params.sample_sheet)
-    .splitCsv(header: true, sep: ',', strip: true)
-    .map { row -> tuple(row.group, row.id, row.file) }
-    .groupTuple()
-    .collect()
-    .set { samples }
+params.debug = false  // Add a debug parameter
 
 process preprocess {
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.0.2'
@@ -38,13 +22,16 @@ process preprocess {
     val chrom
 
     output:
-    path("preprocessed_data/positions_${chrom}.txt"), emit: positions_chr
-    path("preprocessed_data/n_total_reads_case_${chrom}.txt"), emit: n_total_reads_case_chr
-    path("preprocessed_data/n_total_reads_control_${chrom}.txt"), emit: n_total_reads_control_chr
-    path("preprocessed_data/n_methylated_reads_case_${chrom}.txt"), emit: n_methylated_reads_case_chr
-    path("preprocessed_data/n_methylated_reads_control_${chrom}.txt"), emit: n_methylated_reads_control_chr
-    path("preprocessed_data/cpg_sites_merged_${chrom}.txt"), emit: cpg_sites_merged_chr
-    val chrom, emit: chrom
+    tuple(
+        val(chrom),
+        // preprocessed data output
+        path("preprocessed_data/positions_${chrom}.txt"), // positions_chr
+        path("preprocessed_data/n_total_reads_case_${chrom}.txt"), // n_total_reads_case_chr
+        path("preprocessed_data/n_total_reads_control_${chrom}.txt"), // n_total_reads_control_chr
+        path("preprocessed_data/n_methylated_reads_case_${chrom}.txt"), // n_methylated_reads_case_chr
+        path("preprocessed_data/n_methylated_reads_control_${chrom}.txt"), // n_methylated_reads_control_chr
+        path("preprocessed_data/cpg_sites_merged_${chrom}.txt"), // cpg_sites_merged_chr
+    )
 
     script:
     if (params.debug) {
@@ -84,29 +71,34 @@ process estimateParametersAndRegimes {
     memory '24 GB'
 
     input:
-    path n_methylated_reads_control_chr
-    path positions_chr
-    path n_total_reads_control_chr
-    val chrom
-    // just passing this forward...
-    path n_methylated_reads_case_chr
-    path n_total_reads_case_chr
-    path cpg_sites_merged_chr
+    tuple(
+        val(chrom),
+        path(positions_chr, stageAs: "preprocessed_data/*"),
+        path(n_total_reads_case_chr, stageAs: "preprocessed_data/*"),
+        path(n_total_reads_control_chr, stageAs: "preprocessed_data/*"),
+        path(n_methylated_reads_case_chr, stageAs: "preprocessed_data/*"),
+        path(n_methylated_reads_control_chr, stageAs: "preprocessed_data/*"),
+        path(cpg_sites_merged_chr, stageAs: "preprocessed_data/*"),
+    )
 
     output:
-    path n_methylated_reads_control_chr, emit: n_methylated_reads_control_chr
-    path positions_chr, emit: positions_chr
-    path n_total_reads_control_chr, emit: n_total_reads_control_chr
-    path n_methylated_reads_case_chr, emit: n_methylated_reads_case_chr
-    path n_total_reads_case_chr, emit: n_total_reads_case_chr
-    path cpg_sites_merged_chr, emit: cpg_sites_merged_chr
-    path("single_group_estimation/regimes_${chrom}.csv"), emit: regime_probabilities_csv
-    path("single_group_estimation/theta_trace_${chrom}.csv"), emit: theta_trace_csv
-    path("single_group_estimation/p_${chrom}.csv"), emit: p_csv
-    path("single_group_estimation/kappa_${chrom}.csv"), emit: kappa_csv
-    path("single_group_estimation/omega_${chrom}.csv"), emit: omega_csv
-    path("single_group_estimation/theta_${chrom}.csv"), emit: theta_csv
-    val chrom, emit: chrom
+    tuple(
+        val(chrom),
+        // preprocessed data output
+        path(positions_chr),
+        path(n_total_reads_case_chr),
+        path(n_total_reads_control_chr),
+        path(n_methylated_reads_case_chr),
+        path(n_methylated_reads_control_chr),
+        path(cpg_sites_merged_chr),
+        // single_group_estimation files
+        path("single_group_estimation/regimes_${chrom}.csv"), // regime_probabilities_csv
+        path("single_group_estimation/theta_trace_${chrom}.csv"), // theta_trace_csv
+        path("single_group_estimation/p_${chrom}.csv"), // p_csv
+        path("single_group_estimation/kappa_${chrom}.csv"), // kappa_csv
+        path("single_group_estimation/omega_${chrom}.csv"), // omega_csv
+        path("single_group_estimation/theta_${chrom}.csv"), // theta_csv
+    )
 
     script:
     if (params.debug) {
@@ -148,33 +140,46 @@ process infer {
     memory '100 GB'
 
     input:
-    // preprocessed data output
-    path positions_chr
-    path n_total_reads_case_chr
-    path n_total_reads_control_chr
-    path n_methylated_reads_case_chr
-    path n_methylated_reads_control_chr
-    path cpg_sites_merged_chr
-    // single group output
-    path regime_probabilities_csv
-    path theta_trace_csv
-    path p_csv
-    path kappa_csv
-    path omega_csv
-    path theta_csv
-    val chrom
+    tuple(
+        val(chrom),
+        // preprocessed data output
+        path(positions_chr, stageAs: 'preprocessed_data/*'),
+        path(n_total_reads_case_chr, stageAs: 'preprocessed_data/*'),
+        path(n_total_reads_control_chr, stageAs: 'preprocessed_data/*'),
+        path(n_methylated_reads_case_chr, stageAs: 'preprocessed_data/*'),
+        path(n_methylated_reads_control_chr, stageAs: 'preprocessed_data/*'),
+        path(cpg_sites_merged_chr, stageAs: 'preprocessed_data/*'),
+        // single_group_estimation files
+        path(regime_probabilities_csv, stageAs: "single_group_estimation/*"),
+        path(theta_trace_csv, stageAs: "single_group_estimation/*"),
+        path(p_csv, stageAs: "single_group_estimation/*"),
+        path(kappa_csv, stageAs: "single_group_estimation/*"),
+        path(omega_csv, stageAs: "single_group_estimation/*"),
+        path(theta_csv, stageAs: "single_group_estimation/*"),
+    )
     each inference_seed
 
     output:
-    path("infer_out_${chrom}_${inference_seed}/*"), emit: two_group_results
-    val chrom, emit: chrom
-    // Passing this forward
-    path positions_chr, emit: positions_chr
-    path n_total_reads_case_chr, emit: n_total_reads_case_chr
-    path n_total_reads_control_chr, emit: n_total_reads_control_chr
-    path n_methylated_reads_case_chr, emit: n_methylated_reads_case_chr
-    path n_methylated_reads_control_chr, emit: n_methylated_reads_control_chr
-    path cpg_sites_merged_chr, emit: cpg_sites_merged_chr
+    tuple(
+        val(chrom),
+        // preprocessed data output
+        path(positions_chr),
+        path(n_total_reads_case_chr),
+        path(n_total_reads_control_chr),
+        path(n_methylated_reads_case_chr),
+        path(n_methylated_reads_control_chr),
+        path(cpg_sites_merged_chr),
+        // single_group_estimation files
+        path(regime_probabilities_csv),
+        path(theta_trace_csv),
+        path(p_csv),
+        path(kappa_csv),
+        path(omega_csv),
+        path(theta_csv),
+        // inference output
+        path("infer_out_${chrom}_${inference_seed}/*"), // two_group_results
+        val(inference_seed)
+    )
 
     script:
     if (params.debug) {
@@ -198,25 +203,38 @@ process infer {
 
 process aggregate_results {
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.0.2' 
-    publishDir "${params.output_dir}/aggregate", mode: 'copy'
+    publishDir "${params.output_dir}/${chrom}", mode: 'copy'
 
     cpus 8
     memory '24 GB'
 
     input:
-    // preprocessed data output
-    path positions_chr
-    path n_total_reads_case_chr
-    path n_total_reads_control_chr
-    path n_methylated_reads_case_chr
-    path n_methylated_reads_control_chr
-    path cpg_sites_merged_chr
-    val chrom
-    path all_two_group_results, stageAs: "out/**"
+    tuple(
+        val(chrom),
+        // preprocessed data output
+        path(positions_chr, stageAs: 'preprocessed_data/*'),
+        path(n_total_reads_case_chr, stageAs: 'preprocessed_data/*'),
+        path(n_total_reads_control_chr, stageAs: 'preprocessed_data/*'),
+        path(n_methylated_reads_case_chr, stageAs: 'preprocessed_data/*'),
+        path(n_methylated_reads_control_chr, stageAs: 'preprocessed_data/*'),
+        path(cpg_sites_merged_chr, stageAs: 'preprocessed_data/*'),
+        // single_group_estimation files
+        path(regime_probabilities_csv, stageAs: "single_group_estimation/*"),
+        path(theta_trace_csv, stageAs: "single_group_estimation/*"),
+        path(p_csv, stageAs: "single_group_estimation/*"),
+        path(kappa_csv, stageAs: "single_group_estimation/*"),
+        path(omega_csv, stageAs: "single_group_estimation/*"),
+        path(theta_csv, stageAs: "single_group_estimation/*"),
+        // inference output
+        path("infer_out_${chrom}_${inference_seed}/*", stageAs: "out/**"), // two_group_results
+        val(inference_seed)
+    )
 
     output:
-    path("aggregated_out_${chrom}"), emit: aggregated_out
-    val chrom, emit: chrom
+    tuple(
+        val(chrom),
+        path("aggregated_out_${chrom}/*"), // aggregated_out
+    )
 
     script:
     if (params.debug) {
@@ -244,15 +262,19 @@ process aggregate_results {
 
 process get_dmps {
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.0.2'
-    publishDir "${params.output_dir}/dmps", mode: 'copy'
+    publishDir "${params.output_dir}/${chrom}", mode: 'copy'
+
     cpus 8 
     memory '24 GB'
+
     input:
-    path aggregated_out
-    val chrom
+    tuple(
+        val(chrom),
+        path("aggregated_out_${chrom}")
+    )
 
     output:
-    path "dmps", emit: dmps_out
+    path "dmps"
 
     script:
     if (params.debug) {
@@ -271,44 +293,49 @@ process get_dmps {
 }
 
 workflow {
+    Channel
+        .of(1..22)
+        .set { chroms }
+
+    Channel
+        .of(0..1)
+        .set { inference_seeds }
+
+    Channel
+        .fromPath(params.sample_sheet)
+        .splitCsv(header: true, sep: ',', strip: true)
+        .map { row -> tuple(row.group, row.id, row.file) }
+        .groupTuple()
+        .collect()
+        .set { samples }
+
     preprocess(samples, params.cpg_file_path, chroms)
-    estimateParametersAndRegimes(
-        preprocess.out.n_methylated_reads_control_chr,
-        preprocess.out.positions_chr,
-        preprocess.out.n_total_reads_control_chr,
-        preprocess.out.chrom,
-        preprocess.out.n_methylated_reads_case_chr,
-        preprocess.out.n_total_reads_case_chr,
-        preprocess.out.cpg_sites_merged_chr
-    )
+    estimateParametersAndRegimes(preprocess.out)
     infer(
-        estimateParametersAndRegimes.out.positions_chr,
-        estimateParametersAndRegimes.out.n_total_reads_case_chr,
-        estimateParametersAndRegimes.out.n_total_reads_control_chr,
-        estimateParametersAndRegimes.out.n_methylated_reads_case_chr,
-        estimateParametersAndRegimes.out.n_methylated_reads_control_chr,
-        estimateParametersAndRegimes.out.cpg_sites_merged_chr,
-        estimateParametersAndRegimes.out.regime_probabilities_csv,
-        estimateParametersAndRegimes.out.theta_trace_csv,
-        estimateParametersAndRegimes.out.p_csv,
-        estimateParametersAndRegimes.out.kappa_csv,
-        estimateParametersAndRegimes.out.omega_csv,
-        estimateParametersAndRegimes.out.theta_csv,
-        estimateParametersAndRegimes.out.chrom,
+        estimateParametersAndRegimes.out,
         inference_seeds
     )
-    aggregate_results(
-        infer.out.positions_chr.first(),
-        infer.out.n_total_reads_case_chr.first(),
-        infer.out.n_total_reads_control_chr.first(),
-        infer.out.n_methylated_reads_case_chr.first(),
-        infer.out.n_methylated_reads_control_chr.first(),
-        infer.out.cpg_sites_merged_chr.first(),
-        infer.out.chrom.first(),
-        infer.out.two_group_results.collect()
-    )
-    get_dmps(
-        aggregate_results.out.aggregated_out,
-        aggregate_results.out.chrom
-    )
+    infer.out
+        .groupTuple()
+        .map { r -> tuple(
+            r[0],  // chrom
+            r[1].first(),  // positions_chr
+            r[2].first(),  // n_total_reads_case_chr
+            r[3].first(),  // n_total_reads_control_chr
+            r[4].first(),  // n_methylated_reads_case_chr
+            r[5].first(),  // n_methylated_reads_control_chr
+            r[6].first(),  // cpg_sites_merged_chr
+            r[7].first(),  // regime_probabilities_csv
+            r[8].first(),  // theta_trace_csv
+            r[9].first(),  // p_csv
+            r[10].first(),  // kappa_csv
+            r[11].first(),  // omega_csv
+            r[12].first(),  // theta_csv
+            r[13],  // infer_out
+            r[14],  // inference_seed
+        )}
+        .set { merged_infer_outputs }
+
+    aggregate_results(merged_infer_outputs)
+    get_dmps(aggregate_results.out)
 }
