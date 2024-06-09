@@ -184,8 +184,8 @@ process infer {
             --mu ${params.meteor_mu} \
             --sigma ${params.meteor_sigma} \
             --chrom ${chrom} \
-            --single_group_dir ./ \
-            --data_dir ./ \
+            --single_group_dir ./single_group_estimation \
+            --data_dir ./preprocessed_data \
             --results_dir infer_out_${chrom}_${inference_seed} \
             --seed ${inference_seed}
         """
