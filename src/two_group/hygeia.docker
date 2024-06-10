@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Check if at least one argument is provided
+if [ "$#" -lt 1 ]; then
+    echo "Usage: hygeia [script] [arguments...]"
+    exit 1
+fi
+
+# Get the script name from the first argument
+SCRIPT_NAME=$1
+
+# Shift the arguments so that $@ contains only the subsequent arguments
+shift
+
+# Call the appropriate R script based on the script name
+case $SCRIPT_NAME in
+    preprocess)
+        (python "/hygeia/two_group/preprocess_data.py" "$@")
+        ;;
+    infer)
+        (python "/hygeia/two_group/run_inference_two_groups.py" "$@")
+        ;;
+    aggregate)
+        (python "/hygeia/two_group/aggregate_results.py" "$@")
+        ;;
+    get_dmps)
+        (python "/hygeia/two_group/get_dmps.py" "$@")
+        ;;
+    *)
+        echo "Invalid script name: $SCRIPT_NAME"
+        echo "Valid options are: preprocess, infer, aggregate and get_dmps"
+        exit 2
+        ;;
+esac
