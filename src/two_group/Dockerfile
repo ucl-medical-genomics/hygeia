@@ -17,4 +17,5 @@ COPY ./bin ./bin/
 COPY ./hygeia ./hygeia/
 
 ENV PYTHONPATH="${PYTHONPATH}:/hygeia/two_group/"
+ENV HYGEIA_TWO_GRP_BASE_PATH="/hygeia/two_group/"
 ENV PATH="/hygeia/two_group/bin:${PATH}"

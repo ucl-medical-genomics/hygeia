@@ -14,6 +14,16 @@ shift
 
 # Get the absolute path to the base directory
 BASE_DIR="$(realpath "$(dirname "$0")/../")"
+
+# Check if HYGEIA_SINGLE_GRP_BASE_PATH is set
+if [ -z "$HYGEIA_SINGLE_GRP_BASE_PATH" ]; then
+    # HYGEIA_SINGLE_GRP_BASE_PATH is not set, use the current way to determine BASE_DIR
+    SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+    BASE_DIR="$(realpath "${SCRIPT_DIR}/../")"
+else
+    # HYGEIA_SINGLE_GRP_BASE_PATH is set, use its value
+    BASE_DIR="$HYGEIA_SINGLE_GRP_BASE_PATH"
+fi
 SRC_DIR="$BASE_DIR/src/r"
 
 # Call the appropriate R script based on the script name

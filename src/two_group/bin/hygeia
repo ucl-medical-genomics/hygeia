@@ -12,8 +12,15 @@ SCRIPT_NAME=$1
 # Shift the arguments so that $@ contains only the subsequent arguments
 shift
 
-# Get the absolute path to the base directory
-BASE_DIR="$(realpath "$(dirname "$0")/../")"
+# Check if HYGEIA_TWO_GRP_BASE_PATH is set
+if [ -z "$HYGEIA_TWO_GRP_BASE_PATH" ]; then
+    # HYGEIA_TWO_GRP_BASE_PATH is not set, use the current way to determine BASE_DIR
+    SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+    BASE_DIR="$(realpath "${SCRIPT_DIR}/../")"
+else
+    # HYGEIA_TWO_GRP_BASE_PATH is set, use its value
+    BASE_DIR="$HYGEIA_TWO_GRP_BASE_PATH"
+fi
 
 # Call the appropriate R script based on the script name
 case $SCRIPT_NAME in
