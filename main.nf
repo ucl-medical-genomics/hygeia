@@ -42,6 +42,9 @@ process preprocess {
         def controlFileArgs = control_files.collect { "--control_data_path '$it'" }.join(" ")
 
         """
+        which hygeia
+        ls
+        pwd
         hygeia preprocess \
             ${caseIdArgs} \
             ${caseFileArgs} \
