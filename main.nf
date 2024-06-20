@@ -5,7 +5,7 @@ process preprocess {
     publishDir "${params.output_dir}", mode: 'copy'
 
     cpus 4
-    memory '24 GB'
+    memory '16 GB'
 
     input:
     tuple val(case_group), val(case_ids), path(case_files), val(control_group), val(control_ids), path(control_files)
@@ -62,7 +62,7 @@ process estimateParametersAndRegimes {
     publishDir "${params.output_dir}", mode: 'copy', pattern: 'single_group_estimation/*'
 
     cpus 4
-    memory '24 GB'
+    memory '16 GB'
 
     input:
     tuple(
@@ -130,8 +130,8 @@ process infer {
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.2'
     publishDir "${params.output_dir}/two_group_output", mode: 'copy', pattern: "infer_out_${chrom}_${inference_seed}/*"
 
-    cpus 48
-    memory '100 GB'
+    cpus 16
+    memory '170 GB'
 
     input:
     tuple(
@@ -258,7 +258,7 @@ process get_dmps {
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.2'
     publishDir "${params.output_dir}/dmps/", mode: 'copy'
 
-    cpus 8 
+    cpus 4 
     memory '24 GB'
 
     input:
