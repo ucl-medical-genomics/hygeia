@@ -131,7 +131,7 @@ process infer {
     publishDir "${params.output_dir}/two_group_output", mode: 'copy', pattern: "infer_out_${chrom}_${inference_seed}/*"
 
     cpus 16
-    memory '170 GB'
+    memory { 200.GB + (task.attempt * 50.GB ) }
 
     input:
     tuple(
@@ -244,7 +244,7 @@ process aggregate_results {
             ln -f -s ../\$i "merged_out_${chrom}/\$(basename \$i)"
         done
         hygeia aggregate \
-            --data_dir ./ \
+            --data_dir ./preprocessed_data/ \
             --results_dir merged_out_${chrom} \
             --seeds ${params.num_of_inference_seeds} \
             --chrom ${chrom} \
