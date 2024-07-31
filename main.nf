@@ -264,7 +264,7 @@ process get_dmps {
     input:
     tuple(
         val(chrom),
-        path("aggregated_out_${chrom}")
+        path(aggregated_out_chr, stageAs: 'aggregated_data/*')
     )
 
     output:
@@ -279,7 +279,7 @@ process get_dmps {
     } else {
         """
         hygeia get_dmps \
-            --results_dir aggregated_out_${chrom} \
+            --results_dir aggregated_data \
             --output_dir dmps_${chrom} \
             --chrom ${chrom}
         """
