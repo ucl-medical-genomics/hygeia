@@ -52,20 +52,30 @@ flags.DEFINE_string(
     help="Directory to put the results.")
 flags.DEFINE_string(
     'data_dir',
-    default=os.path.join(Path(os.getcwd()).parents[0], 'test'),
+    default=os.path.join('data'),
     help="Directory of the read data.")
 flags.DEFINE_string(
     'single_group_dir',
-    default=os.path.join(Path(os.getcwd()).parents[0], 'test_data', 'single_group_results'),
+    default=os.path.join('test_data', 'single_group_results'),
     help="Directory of the single group estimation results.")
 flags.DEFINE_integer("seed",
                      default=0,
                      help="seed used for sampling random variables")
+flags.DEFINE_integer("batch",
+                      default=0,
+                      help="index of the selected chromosome segment")
+flags.DEFINE_integer("segment_size",
+                      default=100000,
+                      help="size of the selected chromosome segment (in CpG sites)")
+flags.DEFINE_integer("buffer_size",
+                      default=5000,
+                      help="size of the buffer segment (in CpG sites)")
 FLAGS = flags.FLAGS
 
 
 def get_estimated_control_group_param(chromosome, n_methylation_regimes):
   theta_data = pd.read_table(os.path.join(FLAGS.single_group_dir, 'theta_' + str(chromosome) + '.csv'), sep = ',')
+  #estimated_params = theta_data.to_numpy()[0]
   estimated_params = pd.to_numeric(theta_data['data']).to_numpy()
   p_softmax = np.zeros([n_methylation_regimes, n_methylation_regimes])
   i=0
@@ -89,8 +99,8 @@ def main(argv):
   s = '\n'.join(f.serialize() for f in key_flags)
   print('specified flags:\n{}'.format(s))
   path = os.path.join(FLAGS.results_dir,
-                      'chrom_{}'.format(
-                        flags.FLAGS.chrom))
+                      'chrom_{}_{}'.format(
+                        flags.FLAGS.chrom, flags.FLAGS.batch))
   if not os.path.exists(path):
     os.makedirs(path)
   flag_file = open(os.path.join(path, 'flags'+ str(FLAGS.seed)+'.txt'), "w")
@@ -181,17 +191,31 @@ def main(argv):
                  'n_methylated_reads_case_{}.txt'.format(FLAGS.chrom)), sep = ',', header = None)
 
 
-  n_observations = n_total_reads_control.shape[0]
-  observations_control = tf.convert_to_tensor(n_methylated_reads_control.iloc[:n_observations, :], dtype)
-  observations_case = tf.convert_to_tensor(n_methylated_reads_case.iloc[:n_observations, :], dtype)
-  n_total_reads_control = tf.convert_to_tensor(n_total_reads_control.iloc[:n_observations, :], dtype)
-  n_total_reads_case = tf.convert_to_tensor(n_total_reads_case.iloc[:n_observations, :], dtype)
-  positions = tf.convert_to_tensor(positions.iloc[:n_observations, :], tf.int64)
+  #Select the segment corresponding to the batch index (if valid, otherwise exit)
+  if FLAGS.batch * FLAGS.segment_size > positions.shape[0]:
+    sys.exit(0)
+  
+  index= range(max(0, FLAGS.batch * FLAGS.segment_size - FLAGS.buffer_size), 
+                min((FLAGS.batch + 1) * FLAGS.segment_size + FLAGS.buffer_size, positions.shape[0]))
+
+  observations_control = tf.convert_to_tensor(n_methylated_reads_control.iloc[index, :], dtype)
+  observations_case = tf.convert_to_tensor(n_methylated_reads_case.iloc[index, :], dtype)
+  n_total_reads_control = tf.convert_to_tensor(n_total_reads_control.iloc[index, :], dtype)
+  n_total_reads_case = tf.convert_to_tensor(n_total_reads_case.iloc[index, :], dtype)
+  positions = tf.convert_to_tensor(positions.iloc[index, :], tf.int64)
 
   observations = {'control': observations_control,
               'case': observations_case}
   assert (np.sum(n_total_reads_case < observations_case) == 0)
   assert (np.sum(n_total_reads_control < n_total_reads_control) == 0)
+
+  if FLAGS.batch == 0:
+    #for incomplete segment: positions.shape may be smaller than segment size
+    return_index = range(0, min(positions.shape[0], FLAGS.segment_size))
+  else:
+    #for incomplete segment: positions.shape may be smaller than segment size
+    return_index = range(FLAGS.buffer_size, min(positions.shape[0], FLAGS.buffer_size + FLAGS.segment_size))
+
 
   #########
   ## Build generative model
@@ -217,17 +241,17 @@ def main(argv):
   #proposal mapping for marginal filters
   case_control_proposal_mapping = CaseControlProposal(n_methylation_regimes)
 
-
+  #removed buffered states and save
   np.savetxt(os.path.join(path, 'observations_control.csv'),
-        observations_control, delimiter=',')
+        observations_control.numpy().astype(np.int16)[return_index], delimiter=',')
   np.savetxt(os.path.join(path, 'observations_case.csv'),
-        observations_case, delimiter=',')
+        observations_case.numpy().astype(np.int16)[return_index], delimiter=',')
   np.savetxt(os.path.join(path, 'n_total_reads_control.csv'),
-        n_total_reads_control, delimiter=',')
+        n_total_reads_control.numpy().astype(np.int16)[return_index], delimiter=',')
   np.savetxt(os.path.join(path, 'n_total_reads_case.csv'),
-        n_total_reads_case, delimiter=',')
+        n_total_reads_case.numpy().astype(np.int16)[return_index], delimiter=',')
   np.savetxt(os.path.join(path, 'positions.csv'),
-        positions, delimiter=',')
+        positions.numpy()[return_index], delimiter=',')
 
 
   #####
@@ -275,12 +299,13 @@ def main(argv):
     backward_particles_control_state = backward_simulation_particles['control_state'].numpy()
     backward_particles_case_state = backward_simulation_particles['case_state'].numpy()
 
+    #removed buffered states and save
     np.save(os.path.join(path, 'optimal_backward_particles_merged_state_' + str(N) + '_' + str(FLAGS.seed)),
-            backward_particles_merged_state.astype(np.int16))
+            backward_particles_merged_state.astype(np.int16)[return_index])
     np.save(os.path.join(path, 'optimal_backward_particles_control_state_' + str(N) + '_' + str(FLAGS.seed)),
-            backward_particles_control_state.astype(np.int16))
+            backward_particles_control_state.astype(np.int16)[return_index])
     np.save(os.path.join(path, 'optimal_backward_particles_case_state_' + str(N) + '_' + str(FLAGS.seed)),
-            backward_particles_case_state.astype(np.int16))
+            backward_particles_case_state.astype(np.int16)[return_index])
 
     np.save(os.path.join(path, 'optimal_split_probs_' + str(N) + '_' + str(FLAGS.seed)),
             split_probs)
