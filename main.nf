@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 
 process preprocess {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.2'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.3'
     publishDir "${params.output_dir}", mode: 'copy'
 
     cpus 4
@@ -58,7 +58,7 @@ process preprocess {
 }
 
 process estimateParametersAndRegimes {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.2'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.3'
     publishDir "${params.output_dir}", mode: 'copy', pattern: 'single_group_estimation/*'
 
     cpus 4
@@ -127,7 +127,7 @@ process estimateParametersAndRegimes {
 }
 
 process infer {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.2'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.3'
     publishDir "${params.output_dir}/two_group_output", mode: 'copy', pattern: "infer_out_${chrom}_${inference_seed}/*"
 
     cpus 16
@@ -152,6 +152,7 @@ process infer {
         path(theta_csv, stageAs: "single_group_estimation/*"),
     )
     each inference_seed
+    each batch_number
 
     output:
     tuple(
@@ -191,12 +192,13 @@ process infer {
             --data_dir ./preprocessed_data \
             --results_dir infer_out_${chrom}_${inference_seed} \
             --seed ${inference_seed}
+            --batch ${batch_number}
         """
     }
 }
 
 process aggregate_results {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.2' 
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.3'
     publishDir "${params.output_dir}/aggregated", mode: 'copy'
 
     cpus 8
@@ -244,21 +246,21 @@ process aggregate_results {
             ln -f -s ../\$i "merged_out_${chrom}/\$(basename \$i)"
         done
         hygeia aggregate \
-            --data_dir ./preprocessed_data/ \
             --results_dir merged_out_${chrom} \
             --seeds ${params.num_of_inference_seeds} \
             --chrom ${chrom} \
             --output_dir aggregated_out_${chrom} \
             --num_particles 2400
+            --num_batches ${params.batches - 1}
         """
     }
 }
 
 process get_dmps {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.2'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.3'
     publishDir "${params.output_dir}/dmps/", mode: 'copy'
 
-    cpus 4 
+    cpus 4
     memory '24 GB'
 
     input:
@@ -296,6 +298,10 @@ workflow {
         .set { inference_seeds }
 
     Channel
+        .of(0..params.batches - 1)
+        .set { batch_number }
+
+    Channel
         .fromPath(params.sample_sheet)
         .splitCsv(header: true, sep: ',', strip: true)
         .map { row -> tuple(row.group, row.id, row.file) }
@@ -307,7 +313,8 @@ workflow {
     estimateParametersAndRegimes(preprocess.out)
     infer(
         estimateParametersAndRegimes.out,
-        inference_seeds
+        inference_seeds,
+        batch_number
     )
     infer.out
         .groupTuple()
