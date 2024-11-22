@@ -84,7 +84,7 @@ process ESTIMATE_PARAMETERS_AND_REGIMES {
           path(n_methylated_reads_case_chr),
           path(n_methylated_reads_control_chr),
           path(cpg_sites_merged_chr),
-          path("single_group_estimation/regimes_${chrom}.csv"), /
+          path("single_group_estimation/regimes_${chrom}.csv"),
           path("single_group_estimation/theta_trace_${chrom}.csv"),
           path("single_group_estimation/p_${chrom}.csv"),
           path("single_group_estimation/kappa_${chrom}.csv"),
