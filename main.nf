@@ -303,7 +303,7 @@ workflow {
         .groupTuple()
         .collect()
 
-    PREPROCESS(samples, params.cpg_file_path, ch_chroms)
+    PREPROCESS(ch_samples, params.cpg_file_path, ch_chroms)
     ESTIMATE_PARAMETERS_AND_REGIMES(PREPROCESS.out)
     INFER(
         ESTIMATE_PARAMETERS_AND_REGIMES.out,
