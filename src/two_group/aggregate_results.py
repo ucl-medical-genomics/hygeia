@@ -40,6 +40,9 @@ FLAGS(sys.argv)
 
 N = FLAGS.num_particles
 
+print(f"Results directory: {FLAGS.results_dir}")
+print(f"Output directory: {FLAGS.output_dir}")
+
 if not os.path.exists(FLAGS.output_dir):
     os.makedirs(FLAGS.output_dir)
 output_dir = FLAGS.output_dir
@@ -47,7 +50,7 @@ if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
 chrom = FLAGS.chrom
-print(chrom)
+print(f"Processing chromosome: {chrom}")
 
 split_probs_ = []
 regime_probs_ = []
@@ -63,19 +66,35 @@ n_total_reads_case_ = []
 observations_control_ = []
 observations_case_ = []
 
+processed_batches = 0
 
 for batch in range(0, FLAGS.num_batches):
+    data_dir = os.path.join(FLAGS.results_dir, 'chrom_{}_{}'.format(chrom, batch))
+    print(f"\nProcessing batch {batch}")
+    print(f"Looking for data in: {data_dir}")
+
+    # Check if directory exists
+    if not os.path.exists(data_dir):
+        print(f"Directory does not exist: {data_dir}")
+        break
+
+    # Check for positions.csv file
+    positions_file = os.path.join(data_dir, 'positions.csv')
+    if not os.path.isfile(positions_file):
+        print(f"positions.csv not found in {data_dir}")
+        break
+
+    print(f"Found positions.csv in batch {batch}")
 
     merged_states__ = [] 
     control_states__ = []
     case_states__ = [] 
     control_durations__ = []  
     case_durations__ = []  
-    data_dir = os.path.join(FLAGS.results_dir, 'chrom_{}_{}'.format(chrom, batch))
-    if not os.path.isfile(os.path.join(data_dir, 'positions.csv')):
-      break
+
     positions__ = pd.read_table(
-        os.path.join(data_dir, 'positions.csv'), sep = ' ', header = None, dtype = np.int64)
+        positions_file, sep = ' ', header = None, dtype = np.int64)
+    print(f"Read positions data with shape: {positions__.shape}")
     n_total_reads_control__ = pd.read_table(
         os.path.join(data_dir, 'n_total_reads_control.csv'), sep = ' ', header = None)
     n_total_reads_case__ = pd.read_table(
@@ -85,7 +104,7 @@ for batch in range(0, FLAGS.num_batches):
     observations_case__ = pd.read_table(
         os.path.join(data_dir, 'observations_case.csv'), sep = ' ', header = None)
 
-
+    seed_success = 0
     for seed in range(0, FLAGS.seeds):
         merged_states = np.load(os.path.join(data_dir,
                                              'optimal_backward_particles_merged_state_{}_{}.npy'.format(N, seed)))
@@ -96,9 +115,9 @@ for batch in range(0, FLAGS.num_batches):
         merged_states__.append(merged_states)
         control_states__.append(control_states)
         case_states__.append(case_states)
+        seed_success += 1
 
-
-
+    print(f"Successfully processed {seed_success} seeds out of {FLAGS.seeds}")
 
     merged_states__ = np.concatenate(merged_states__, -1)
     control_states__ = np.concatenate(control_states__, axis = 1)
@@ -107,8 +126,9 @@ for batch in range(0, FLAGS.num_batches):
     split_probs__ = np.mean(merged_states__ == 0, axis = 1)
 
     start_ind = 0
-
     end_ind = split_probs__.shape[0]
+
+    # Append data to lists
     split_probs_.append(pd.DataFrame(split_probs__[start_ind:end_ind]))
     positions_.append(positions__.iloc[start_ind:end_ind])
 
@@ -123,11 +143,21 @@ for batch in range(0, FLAGS.num_batches):
     observations_control_.append(pd.DataFrame(observations_control__[start_ind:end_ind]).astype(np.int16))
     observations_case_.append(pd.DataFrame(observations_case__[start_ind:end_ind]).astype(np.int16))
 
+    processed_batches += 1
+    print(f"Successfully processed batch {batch}")
+
     #split_probs_['chrom'] = chrom
     #split_probs_ = pd.concat(split_probs_)
 
+print(f"\nProcessing complete. Successfully processed {processed_batches} batches")
+print(f"Length of positions_ list: {len(positions_)}")
 
 
+if len(positions_) == 0:
+    print("No data was processed. Check the input directories and file paths.")
+    sys.exit(1)
+
+print("Concatenating results...")
 #save per chromosome outputs
 positions_chrom = pd.concat(positions_)
 positions_chrom = positions_chrom.rename(columns = {0: 'pos'})

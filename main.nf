@@ -154,12 +154,14 @@ process INFER {
 
     output:
     tuple val(chrom),
+          // could be removed
           path(positions_chr),
           path(n_total_reads_case_chr),
           path(n_total_reads_control_chr),
           path(n_methylated_reads_case_chr),
           path(n_methylated_reads_control_chr),
           path(cpg_sites_merged_chr),
+          // until here
           path(regime_probabilities_csv),
           path(theta_trace_csv),
           path(p_csv),
@@ -203,12 +205,14 @@ process AGGREGATE_RESULTS {
 
     input:
     tuple val(chrom),
+          // could be removed
           path(positions_chr, stageAs: 'preprocessed_data/*'),
           path(n_total_reads_case_chr, stageAs: 'preprocessed_data/*'),
           path(n_total_reads_control_chr, stageAs: 'preprocessed_data/*'),
           path(n_methylated_reads_case_chr, stageAs: 'preprocessed_data/*'),
           path(n_methylated_reads_control_chr, stageAs: 'preprocessed_data/*'),
           path(cpg_sites_merged_chr, stageAs: 'preprocessed_data/*'),
+          // until here
           path(regime_probabilities_csv, stageAs: "single_group_estimation/*"),
           path(theta_trace_csv, stageAs: "single_group_estimation/*"),
           path(p_csv, stageAs: "single_group_estimation/*"),
@@ -229,6 +233,10 @@ process AGGREGATE_RESULTS {
     for i in out/*/*; do
         ln -f -s ../\$i "merged_out_${chrom}/\$(basename \$i)"
     done
+    # list files in curr
+    ls *
+    ls */*
+
     hygeia aggregate --results_dir merged_out_${chrom} --chrom ${chrom} \
         --seeds ${params.num_of_inference_seeds} --num_particles 2400
         --output_dir aggregated_out_${chrom} --num_batches ${params.batches - 1}
