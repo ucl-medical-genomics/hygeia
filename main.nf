@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 
 process PREPROCESS {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.4'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.5'
     publishDir "${params.output_dir}", mode: 'copy'
 
     memory 16.GB
@@ -60,7 +60,7 @@ process PREPROCESS {
 }
 
 process ESTIMATE_PARAMETERS_AND_REGIMES {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.4'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.5'
     publishDir "${params.output_dir}", mode: 'copy', pattern: 'single_group_estimation/*'
 
     memory 4.GB
@@ -129,7 +129,7 @@ process ESTIMATE_PARAMETERS_AND_REGIMES {
 }
 
 process INFER {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.4'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.5'
     publishDir "${params.output_dir}/two_group_output", mode: 'copy',
         pattern: "infer_out_${chrom}_${inference_seed}/*"
 
@@ -199,7 +199,7 @@ process INFER {
 }
 
 process AGGREGATE_RESULTS {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.4'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.5'
     publishDir "${params.output_dir}/aggregated", mode: 'copy'
 
     cpus 4
@@ -253,7 +253,7 @@ process AGGREGATE_RESULTS {
 }
 
 process GET_DMPS {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.4'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.5'
     publishDir "${params.output_dir}/dmps/", mode: 'copy'
 
     cpus 4
