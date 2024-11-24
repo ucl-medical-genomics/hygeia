@@ -69,7 +69,7 @@ observations_case_ = []
 processed_batches = 0
 
 for batch in range(0, FLAGS.num_batches):
-    data_dir = os.path.join(FLAGS.results_dir, 'chrom_{}_{}'.format(chrom, batch))
+    data_dir = os.path.join(FLAGS.results_dir, 'chrom_{}_{}_0'.format(chrom, batch))
     print(f"\nProcessing batch {batch}")
     print(f"Looking for data in: {data_dir}")
 
@@ -106,6 +106,7 @@ for batch in range(0, FLAGS.num_batches):
 
     seed_success = 0
     for seed in range(0, FLAGS.seeds):
+        data_dir = os.path.join(FLAGS.results_dir, 'chrom_{}_{}_{}'.format(chrom, batch, seed))
         merged_states = np.load(os.path.join(data_dir,
                                              'optimal_backward_particles_merged_state_{}_{}.npy'.format(N, seed)))
         control_states = np.load(os.path.join(data_dir,
