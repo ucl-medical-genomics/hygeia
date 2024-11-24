@@ -168,7 +168,7 @@ process INFER {
           path(kappa_csv),
           path(omega_csv),
           path(theta_csv),
-          path("infer_out_${chrom}_${inference_seed}/*"), // two_group_results
+          path("chrom_${chrom}_${batch_number}_${inference_seed}"), // two_group_results
           val(inference_seed)
 
     script:
@@ -176,7 +176,7 @@ process INFER {
     hygeia infer --mu ${params.meteor_mu} --sigma ${params.meteor_sigma} \
         --chrom ${chrom} --single_group_dir ./single_group_estimation \
         --data_dir ./preprocessed_data \
-        --results_dir infer_out_${chrom}_${inference_seed} \
+        --results_dir chrom_${chrom}_${batch_number}_${inference_seed} \
         --seed ${inference_seed} --batch ${batch_number}
 
     cat <<-END_VERSIONS > versions.yml
@@ -187,8 +187,10 @@ process INFER {
 
     stub:
     """
-    mkdir -p infer_out_${chrom}_${inference_seed}
-    touch infer_out_${chrom}_${inference_seed}/dummy_file
+    mkdir -p chrom_${chrom}_${batch_number}_${inference_seed}
+    touch chrom_${chrom}_${batch_number}_${inference_seed}/dummy_file
+    echo "{chrom} {inference_seed} {batch_number}" > chrom_${chrom}_${batch_number}_${inference_seed}/dummy_file
+
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         hygeia: stub
@@ -219,7 +221,7 @@ process AGGREGATE_RESULTS {
           path(kappa_csv, stageAs: "single_group_estimation/*"),
           path(omega_csv, stageAs: "single_group_estimation/*"),
           path(theta_csv, stageAs: "single_group_estimation/*"),
-          path("infer_out_${chrom}_${inference_seed}/*", stageAs: "out/**"), // two_group_results
+          path("two_group_results_${chrom}/*"), // two_group_results
           val(inference_seed)
 
     output:
@@ -228,16 +230,7 @@ process AGGREGATE_RESULTS {
 
     script:
     """
-    # Merge all the results into one folder
-    mkdir -p merged_out_${chrom}
-    for i in out/*/*; do
-        ln -f -s ../\$i "merged_out_${chrom}/\$(basename \$i)"
-    done
-    # list files in curr
-    ls *
-    ls */*
-
-    hygeia aggregate --results_dir merged_out_${chrom} --chrom ${chrom} \
+    hygeia aggregate --results_dir two_group_results_${chrom} --chrom ${chrom} \
         --seeds ${params.num_of_inference_seeds} --num_particles 2400
         --output_dir aggregated_out_${chrom} --num_batches ${params.batches - 1}
 
