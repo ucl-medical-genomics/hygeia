@@ -71,19 +71,19 @@ echo $CR_PAT | docker login ghcr.io -u USERNAME --password-stdin
 2. Build docker image and upload to Github Packages
 
 ```bash
-docker build -t hygeia/single_group src/single_group
-docker build -t hygeia/two_group src/two_group
+docker build -t hygeia/single_group src/single_group;
+docker build -t hygeia/two_group src/two_group;
 
-docker tag hygeia/single_group ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.5
-docker tag hygeia/single_group ghcr.io/ucl-medical-genomics/hygeia_single_group:latest
+docker tag hygeia/single_group ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.6;
+docker tag hygeia/single_group ghcr.io/ucl-medical-genomics/hygeia_single_group:latest;
 
-docker tag hygeia/two_group ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.5
-docker tag hygeia/two_group ghcr.io/ucl-medical-genomics/hygeia_two_group:latest
+docker tag hygeia/two_group ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.6;
+docker tag hygeia/two_group ghcr.io/ucl-medical-genomics/hygeia_two_group:latest;
 
-docker push ghcr.io/ucl-medical-genomics/hygeia_single_group:latest
-docker push ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.5
-docker push ghcr.io/ucl-medical-genomics/hygeia_two_group:latest
-docker push ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.5
+docker push ghcr.io/ucl-medical-genomics/hygeia_single_group:latest;
+docker push ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.6;
+docker push ghcr.io/ucl-medical-genomics/hygeia_two_group:latest;
+docker push ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.6;
 ```
 
 # Tutorial - Run Single Group analysis with NA12878

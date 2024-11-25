@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 
 process PREPROCESS {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.5'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.6'
     publishDir "${params.output_dir}", mode: 'copy'
 
     memory 16.GB
@@ -60,7 +60,7 @@ process PREPROCESS {
 }
 
 process ESTIMATE_PARAMETERS_AND_REGIMES {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.5'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.6'
     publishDir "${params.output_dir}", mode: 'copy', pattern: 'single_group_estimation/*'
 
     memory 4.GB
@@ -129,7 +129,7 @@ process ESTIMATE_PARAMETERS_AND_REGIMES {
 }
 
 process INFER {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.5'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.6'
     publishDir "${params.output_dir}/two_group_output", mode: 'copy',
         pattern: "infer_out_${chrom}_${inference_seed}/*"
 
@@ -168,7 +168,7 @@ process INFER {
           path(kappa_csv),
           path(omega_csv),
           path(theta_csv),
-          path("chrom_${chrom}_${batch_number}_${inference_seed}/*"), // two_group_results
+          path("chrom_${chrom}_${batch_number}_${inference_seed}"), // two_group_results
           val(inference_seed)
 
     script:
@@ -199,7 +199,7 @@ process INFER {
 }
 
 process AGGREGATE_RESULTS {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.5'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.6'
     publishDir "${params.output_dir}/aggregated", mode: 'copy'
 
     cpus 4
@@ -230,7 +230,20 @@ process AGGREGATE_RESULTS {
 
     script:
     """
-    hygeia aggregate --results_dir two_group_results_${chrom} --chrom ${chrom} \
+    for file in two_group_results_${chrom}/chrom_${chrom}_*/*/*; do
+        if [ -f "\$file" ]; then
+            local bn=$(basename "\$file")
+            local dest_dir=\$(basename "\$(dirname "\${file}")")
+            local dest_file=merged_out/"\$dest_dir/\$bn"
+            mkdir -p merged_out_${chrom}/"\$dest_dir"
+            # Only create link if it doesn't already exist
+            if [ ! -e "\$dest_file" ]; then
+                ln -s "../../\$file" "\$dest_file"
+            fi
+        fi
+    done
+
+    hygeia aggregate --results_dir merged_out_${chrom} --chrom ${chrom} \
         --seeds ${params.num_of_inference_seeds} --num_particles 2400
         --output_dir aggregated_out_${chrom} --num_batches ${params.batches - 1}
 
@@ -253,7 +266,7 @@ process AGGREGATE_RESULTS {
 }
 
 process GET_DMPS {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.5'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.6'
     publishDir "${params.output_dir}/dmps/", mode: 'copy'
 
     cpus 4
