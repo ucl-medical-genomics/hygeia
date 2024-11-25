@@ -232,14 +232,14 @@ process AGGREGATE_RESULTS {
     """
     for file in two_group_results_${chrom}/chrom_${chrom}_*/*/*; do
         if [ -f "\$file" ]; then
-            bn=\$(basename "\$file")
-            dest_dir=\$(basename "\$(dirname "\${file}")")
-            dest_file=merged_out_${chrom}/"\$dest_dir/\$bn"
+            BASE_NAME=\$(basename "\$file")
+            DEST_DIR=\$(basename "\$(dirname "\${file}")")
+            DEST_FILE=merged_out_${chrom}/"\${DEST_DIR}/\${BASE_NAME}"
 
-            mkdir -p merged_out_${chrom}/"\$dest_dir"
+            mkdir -p merged_out_${chrom}/"\${DEST_DIR}"
             # Only create link if it doesn't already exist
-            if [ ! -e "\$dest_file" ]; then
-                ln -s "../../\$file" "\$dest_file"
+            if [ ! -e "\${DEST_FILE}" ]; then
+                ln -s "../../\$file" "\${DEST_FILE}"
             fi
         fi
     done
@@ -307,7 +307,6 @@ workflow {
     ch_chroms = Channel.of(params.chroms.split(','))
     ch_inference_seeds = Channel.of(0..params.num_of_inference_seeds - 1)
     ch_batch_numbers = Channel.of(0..params.batches - 1)
-
     ch_samples = Channel
         .fromPath(params.sample_sheet)
         .splitCsv(header: true, sep: ',', strip: true)
