@@ -232,9 +232,10 @@ process AGGREGATE_RESULTS {
     """
     for file in two_group_results_${chrom}/chrom_${chrom}_*/*/*; do
         if [ -f "\$file" ]; then
-            local bn=$(basename "\$file")
-            local dest_dir=\$(basename "\$(dirname "\${file}")")
-            local dest_file=merged_out/"\$dest_dir/\$bn"
+            bn=\$(basename "\$file")
+            dest_dir=\$(basename "\$(dirname "\${file}")")
+            dest_file=merged_out_${chrom}/"\$dest_dir/\$bn"
+
             mkdir -p merged_out_${chrom}/"\$dest_dir"
             # Only create link if it doesn't already exist
             if [ ! -e "\$dest_file" ]; then
@@ -244,7 +245,7 @@ process AGGREGATE_RESULTS {
     done
 
     hygeia aggregate --results_dir merged_out_${chrom} --chrom ${chrom} \
-        --seeds ${params.num_of_inference_seeds} --num_particles 2400
+        --seeds ${params.num_of_inference_seeds} --num_particles 2400 \
         --output_dir aggregated_out_${chrom} --num_batches ${params.batches - 1}
 
     cat <<-END_VERSIONS > versions.yml
