@@ -168,7 +168,7 @@ process INFER {
           path(kappa_csv),
           path(omega_csv),
           path(theta_csv),
-          path("chrom_${chrom}_${batch_number}_${inference_seed}"), // two_group_results
+          path("chrom_${chrom}_${batch_number}_${inference_seed}/*"), // two_group_results
           val(inference_seed)
 
     script:
