@@ -154,14 +154,6 @@ process INFER {
 
     output:
     tuple val(chrom),
-          // could be removed
-          path(positions_chr),
-          path(n_total_reads_case_chr),
-          path(n_total_reads_control_chr),
-          path(n_methylated_reads_case_chr),
-          path(n_methylated_reads_control_chr),
-          path(cpg_sites_merged_chr),
-          // until here
           path(regime_probabilities_csv),
           path(theta_trace_csv),
           path(p_csv),
@@ -207,14 +199,6 @@ process AGGREGATE_RESULTS {
 
     input:
     tuple val(chrom),
-          // could be removed
-          path(positions_chr, stageAs: 'preprocessed_data/*'),
-          path(n_total_reads_case_chr, stageAs: 'preprocessed_data/*'),
-          path(n_total_reads_control_chr, stageAs: 'preprocessed_data/*'),
-          path(n_methylated_reads_case_chr, stageAs: 'preprocessed_data/*'),
-          path(n_methylated_reads_control_chr, stageAs: 'preprocessed_data/*'),
-          path(cpg_sites_merged_chr, stageAs: 'preprocessed_data/*'),
-          // until here
           path(regime_probabilities_csv, stageAs: "single_group_estimation/*"),
           path(theta_trace_csv, stageAs: "single_group_estimation/*"),
           path(p_csv, stageAs: "single_group_estimation/*"),
@@ -325,20 +309,14 @@ workflow {
         .groupTuple()
         .map { r -> tuple(
             r[0],  // chrom
-            r[1].first(),  // positions_chr
-            r[2].first(),  // n_total_reads_case_chr
-            r[3].first(),  // n_total_reads_control_chr
-            r[4].first(),  // n_methylated_reads_case_chr
-            r[5].first(),  // n_methylated_reads_control_chr
-            r[6].first(),  // cpg_sites_merged_chr
-            r[7].first(),  // regime_probabilities_csv
-            r[8].first(),  // theta_trace_csv
-            r[9].first(),  // p_csv
-            r[10].first(),  // kappa_csv
-            r[11].first(),  // omega_csv
-            r[12].first(),  // theta_csv
-            r[13],  // infer_out
-            r[14],  // inference_seed
+            r[1].first(),  // regime_probabilities_csv
+            r[2].first(),  // theta_trace_csv
+            r[3].first(),  // p_csv
+            r[4].first(),  // kappa_csv
+            r[5].first(),  // omega_csv
+            r[6].first(),  // theta_csv
+            r[7],  // infer_out
+            r[8],  // inference_seed
         )}
         .set { merged_infer_outputs }
 
