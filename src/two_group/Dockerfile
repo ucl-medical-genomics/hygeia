@@ -12,6 +12,7 @@ COPY run_inference_two_groups.py ./
 COPY aggregate_results.py ./
 COPY get_dmps.py ./
 COPY multiple_testing.py ./
+COPY get_chrom_segments.py ./
 
 COPY ./bin ./bin/
 COPY ./hygeia ./hygeia/

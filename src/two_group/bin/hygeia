@@ -22,10 +22,13 @@ else
     BASE_DIR="$HYGEIA_TWO_GRP_BASE_PATH"
 fi
 
-# Call the appropriate R script based on the script name
+# Call the appropriate python script based on the script name
 case $SCRIPT_NAME in
     preprocess)
         (python "${BASE_DIR}/preprocess_data.py" "$@")
+        ;;
+    get_chrom_segments)
+        (python "${BASE_DIR}/get_chrom_segments.py" "$@")
         ;;
     infer)
         (python "${BASE_DIR}/run_inference_two_groups.py" "$@")
@@ -38,7 +41,7 @@ case $SCRIPT_NAME in
         ;;
     *)
         echo "Invalid script name: $SCRIPT_NAME"
-        echo "Valid options are: preprocess, infer, aggregate and get_dmps"
+        echo "Valid options are: preprocess, get_chrom_segments, infer, aggregate and get_dmps"
         exit 2
         ;;
 esac

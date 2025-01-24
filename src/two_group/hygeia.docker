@@ -12,10 +12,13 @@ SCRIPT_NAME=$1
 # Shift the arguments so that $@ contains only the subsequent arguments
 shift
 
-# Call the appropriate R script based on the script name
+# Call the appropriate python script based on the script name
 case $SCRIPT_NAME in
     preprocess)
         (python "/hygeia/two_group/preprocess_data.py" "$@")
+        ;;
+    get_chrom_segments)
+        (python "/hygeia/two_group/get_chrom_segments.py" "$@")
         ;;
     infer)
         (python "/hygeia/two_group/run_inference_two_groups.py" "$@")
@@ -28,7 +31,7 @@ case $SCRIPT_NAME in
         ;;
     *)
         echo "Invalid script name: $SCRIPT_NAME"
-        echo "Valid options are: preprocess, infer, aggregate and get_dmps"
+        echo "Valid options are: preprocess, get_chrom_segments, infer, aggregate and get_dmps"
         exit 2
         ;;
 esac
