@@ -8,10 +8,6 @@ nextflow run ucl-medical-genomics/hygeia \
 
 # Beck Server
 # nextflow run main.nf \
-#   --cpg_file_path "s3://hygeia-analysis/data/ref/cpg.tsv.gz" \
-#   --sample_sheet "s3://hygeia-analysis/data/aging/sample_sheet.csv" \
-#   -bucket-dir "s3://hygeia-analysis/tmp/work/8" \
-#   -resume -with-tower \
-#   -c nextflow.config \
-#   -c aws.config \
-#   --output_dir "s3://hygeia-analysis/results/8"
+#   --cpg_file_path "/scratch/imoghul/hygeia_data/ref/cpg.tsv.gz" \
+#   --sample_sheet "/scratch/imoghul/hygeia_data/aging/sample_sheet.csv" \
+#   -resume -with-tower -c nextflow.config --output_dir "out"

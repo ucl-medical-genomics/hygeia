@@ -17,6 +17,6 @@ COPY ./bin ./bin/
 COPY ./hygeia ./hygeia/
 COPY ./hygeia.docker ./bin/hygeia
 
-ENV PYTHONPATH="${PYTHONPATH}:/hygeia/two_group/"
+ENV PYTHONPATH=/hygeia/two_group/${PYTHONPATH:+:${PYTHONPATH}}
 ENV HYGEIA_TWO_GRP_BASE_PATH="/hygeia/two_group/"
 ENV PATH="/hygeia/two_group/bin:${PATH}"
