@@ -193,6 +193,7 @@ def main(argv):
 
   #Select the segment corresponding to the batch index (if valid, otherwise exit)
   if FLAGS.batch * FLAGS.segment_size > positions.shape[0]:
+    print("Batch index is too large for the chromosome")
     sys.exit(0)
   
   index= range(max(0, FLAGS.batch * FLAGS.segment_size - FLAGS.buffer_size), 
