@@ -187,8 +187,8 @@ process INFER {
         pattern: "infer_out_${chrom}_${inference_seed}/*"
     
 
-    // memory 16.GB
-    memory 250.GB
+    memory 16.GB
+    // memory 250.GB
 
     input:
     tuple val(chrom),
