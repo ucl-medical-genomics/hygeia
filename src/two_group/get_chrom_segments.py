@@ -31,7 +31,7 @@ def main(argv):
     num_segments = 1 + num_positions // FLAGS.segment_size
 
     # Generate segment indices for the chromosome
-    segments = [{'chrom': FLAGS.chrom, 'segment_index': i} for i in range(1, num_segments + 1)]
+    segments = [{'chrom': FLAGS.chrom, 'segment_index': i} for i in range(0, num_segments)]
 
     # Save the results to the output CSV
     pd.DataFrame(segments).to_csv(FLAGS.output_csv, index=False)
