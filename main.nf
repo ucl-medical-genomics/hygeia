@@ -270,11 +270,11 @@ process AGGREGATE_RESULTS {
 
     script:
     """
-    // structure is:
-    // two_group_results_{chrom}/
-    //      chrom_{chrom}_{batch_number}_{inference_seed}/
-    //          chrom_{chrom}_{batch_number}/
-    //              files...
+    # structure is:
+    # two_group_results_{chrom}/
+    #      chrom_{chrom}_{batch_number}_{inference_seed}/
+    #          chrom_{chrom}_{batch_number}/
+    #              files...
     for file in two_group_results_${chrom}/chrom_${chrom}_*/*/*; do
         if [ -f "\$file" ]; then
             BASE_NAME=\$(basename "\$file")
