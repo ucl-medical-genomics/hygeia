@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 
 process PREPROCESS {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.10'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.12'
     publishDir "${params.output_dir}", mode: 'copy'
 
     memory 16.GB
@@ -129,7 +129,7 @@ process ESTIMATE_PARAMETERS_AND_REGIMES {
 }
 
 process GET_CHROM_SEGMENTS {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.10'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.12'
     publishDir "${params.output_dir}/chrom_segments", mode: 'copy'
 
     input:
@@ -182,13 +182,11 @@ process GET_CHROM_SEGMENTS {
 }
 
 process INFER {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.10'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.12'
     publishDir "${params.output_dir}/two_group_output", mode: 'copy',
         pattern: "infer_out_${chrom}_${inference_seed}/*"
-    
 
     memory 16.GB
-    // memory 250.GB
 
     input:
     tuple val(chrom),
@@ -248,7 +246,7 @@ process INFER {
 }
 
 process AGGREGATE_RESULTS {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.10'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.12'
     publishDir "${params.output_dir}/aggregated", mode: 'copy'
 
     cpus 4
@@ -314,7 +312,7 @@ process AGGREGATE_RESULTS {
 }
 
 process GET_DMPS {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.10'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.12'
     publishDir "${params.output_dir}/dmps/", mode: 'copy'
 
     cpus 4
@@ -387,7 +385,7 @@ workflow {
             n_methylated_reads_case_chr, n_methylated_reads_control_chr,
             cpg_sites_merged_chr, regime_probabilities_csv, theta_trace_csv,
             p_csv, kappa_csv, omega_csv, theta_csv, segments_file ->
-            // Subtract 2 to exclude the header row and due to starting at 0.
+            // Subtract 2 to exclude the header row and 0 indexing
             file(segments_file).readLines().size() - 2  
         }
 
