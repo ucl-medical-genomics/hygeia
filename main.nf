@@ -128,12 +128,9 @@ process ESTIMATE_PARAMETERS_AND_REGIMES {
     """
 }
 
-process INFER {
+process GET_CHROM_SEGMENTS {
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.10'
-    publishDir "${params.output_dir}/two_group_output", mode: 'copy',
-        pattern: "infer_out_${chrom}_${inference_seed}/*"
-
-    memory 16.GB
+    publishDir "${params.output_dir}/chrom_segments", mode: 'copy'
 
     input:
     tuple val(chrom),
@@ -149,8 +146,66 @@ process INFER {
           path(kappa_csv, stageAs: "single_group_estimation/*"),
           path(omega_csv, stageAs: "single_group_estimation/*"),
           path(theta_csv, stageAs: "single_group_estimation/*")
+    val(batch_size)
+
+    output:
+    tuple val(chrom),
+          path(positions_chr),
+          path(n_total_reads_case_chr),
+          path(n_total_reads_control_chr),
+          path(n_methylated_reads_case_chr),
+          path(n_methylated_reads_control_chr),
+          path(cpg_sites_merged_chr),
+          path(regime_probabilities_csv),
+          path(theta_trace_csv),
+          path(p_csv),
+          path(kappa_csv),
+          path(omega_csv),
+          path(theta_csv),
+          path("chrom_segments_${chrom}.csv")
+
+    script:
+    """
+    hygeia get_chrom_segments --input_file ${positions_chr} --chrom ${chrom} \
+        --output_csv chrom_segments_${chrom}.csv --segment_size ${batch_size}
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        hygeia: \$(hygeia --version | sed 's/hygeia version //g')
+    END_VERSIONS
+    """
+
+    stub:
+    """
+    touch chrom_segments_${chrom}.csv
+    """
+}
+
+process INFER {
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.10'
+    publishDir "${params.output_dir}/two_group_output", mode: 'copy',
+        pattern: "infer_out_${chrom}_${inference_seed}/*"
+
+    // memory 16.GB
+    memory 250.GB
+
+    input:
+    tuple val(chrom),
+          path(positions_chr, stageAs: 'preprocessed_data/*'),
+          path(n_total_reads_case_chr, stageAs: 'preprocessed_data/*'),
+          path(n_total_reads_control_chr, stageAs: 'preprocessed_data/*'),
+          path(n_methylated_reads_case_chr, stageAs: 'preprocessed_data/*'),
+          path(n_methylated_reads_control_chr, stageAs: 'preprocessed_data/*'),
+          path(cpg_sites_merged_chr, stageAs: 'preprocessed_data/*'),
+          path(regime_probabilities_csv, stageAs: "single_group_estimation/*"),
+          path(theta_trace_csv, stageAs: "single_group_estimation/*"),
+          path(p_csv, stageAs: "single_group_estimation/*"),
+          path(kappa_csv, stageAs: "single_group_estimation/*"),
+          path(omega_csv, stageAs: "single_group_estimation/*"),
+          path(theta_csv, stageAs: "single_group_estimation/*"),
+          val(chrom_alt_from_batch_indexes),
+          val(batch_index)
     each inference_seed
-    each batch_number
 
     output:
     tuple val(chrom),
@@ -160,7 +215,7 @@ process INFER {
           path(kappa_csv),
           path(omega_csv),
           path(theta_csv),
-          path("chrom_${chrom}_${batch_number}_${inference_seed}"), // two_group_results
+          path("chrom_${chrom}_${batch_index}_${inference_seed}"), // two_group_results
           val(inference_seed)
 
     script:
@@ -168,8 +223,8 @@ process INFER {
     hygeia infer --mu ${params.meteor_mu} --sigma ${params.meteor_sigma} \
         --chrom ${chrom} --single_group_dir ./single_group_estimation \
         --data_dir ./preprocessed_data \
-        --results_dir chrom_${chrom}_${batch_number}_${inference_seed} \
-        --seed ${inference_seed} --batch ${batch_number}
+        --results_dir chrom_${chrom}_${batch_index}_${inference_seed} \
+        --seed ${inference_seed} --batch ${batch_index}
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -290,7 +345,6 @@ process GET_DMPS {
 workflow {
     ch_chroms = Channel.of(params.chroms.split(','))
     ch_inference_seeds = Channel.of(0..params.num_of_inference_seeds - 1)
-    ch_batch_numbers = Channel.of(0..params.batches - 1)
     ch_samples = Channel
         .fromPath(params.sample_sheet)
         .splitCsv(header: true, sep: ',', strip: true)
@@ -300,11 +354,30 @@ workflow {
 
     PREPROCESS(ch_samples, params.cpg_file_path, ch_chroms)
     ESTIMATE_PARAMETERS_AND_REGIMES(PREPROCESS.out)
+
+    GET_CHROM_SEGMENTS(ESTIMATE_PARAMETERS_AND_REGIMES.out, params.batch_size)
+
+    // Modify the ch_batch_indexes creation to properly handle file paths
+    ch_batch_indexes = GET_CHROM_SEGMENTS.out
+        .flatMap { chrom, positions_chr, n_total_reads_case_chr, n_total_reads_control_chr,
+                   n_methylated_reads_case_chr, n_methylated_reads_control_chr,
+                   cpg_sites_merged_chr, regime_probabilities_csv,theta_trace_csv,
+                   p_csv, kappa_csv, omega_csv, theta_csv, segments_file ->
+            file(segments_file)
+                .splitCsv(header: true)
+                .collect { row ->
+                    tuple(chrom, positions_chr, n_total_reads_case_chr, n_total_reads_control_chr,
+                            n_methylated_reads_case_chr, n_methylated_reads_control_chr,
+                            cpg_sites_merged_chr, regime_probabilities_csv,theta_trace_csv,
+                            p_csv, kappa_csv, omega_csv, theta_csv, row.chrom, row.segment_index.toInteger())
+                }
+        }
+
     INFER(
-        ESTIMATE_PARAMETERS_AND_REGIMES.out,
-        ch_inference_seeds,
-        ch_batch_numbers
+        ch_batch_indexes,
+        ch_inference_seeds
     )
+
     INFER.out
         .groupTuple()
         .map { r -> tuple(
