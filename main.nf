@@ -185,6 +185,7 @@ process INFER {
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.10'
     publishDir "${params.output_dir}/two_group_output", mode: 'copy',
         pattern: "infer_out_${chrom}_${inference_seed}/*"
+    
 
     // memory 16.GB
     memory 250.GB
@@ -224,7 +225,8 @@ process INFER {
         --chrom ${chrom} --single_group_dir ./single_group_estimation \
         --data_dir ./preprocessed_data \
         --results_dir chrom_${chrom}_${batch_index}_${inference_seed} \
-        --seed ${inference_seed} --batch ${batch_index}
+        --seed ${inference_seed} \
+        --batch ${batch_index} --segment_size ${params.batch_size}
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -262,6 +264,7 @@ process AGGREGATE_RESULTS {
           path(theta_csv, stageAs: "single_group_estimation/*"),
           path("two_group_results_${chrom}/*"), // two_group_results
           val(inference_seed)
+    val(number_of_batches)
 
     output:
     tuple val(chrom),
@@ -269,6 +272,11 @@ process AGGREGATE_RESULTS {
 
     script:
     """
+    // structure is:
+    // two_group_results_${chrom}/
+    //      chrom_${chrom}_${batch_number}_${inference_seed}/
+    //          chrom_${chrom}_${batch_number}/
+    //              files...
     for file in two_group_results_${chrom}/chrom_${chrom}_*/*/*; do
         if [ -f "\$file" ]; then
             BASE_NAME=\$(basename "\$file")
@@ -285,7 +293,7 @@ process AGGREGATE_RESULTS {
 
     hygeia aggregate --results_dir merged_out_${chrom} --chrom ${chrom} \
         --seeds ${params.num_of_inference_seeds} --num_particles 2400 \
-        --output_dir aggregated_out_${chrom} --num_batches ${params.batches - 1}
+        --output_dir aggregated_out_${chrom} --num_batches ${number_of_batches}
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -373,6 +381,16 @@ workflow {
                 }
         }
 
+    // calculate the number of batches
+    number_of_batches = GET_CHROM_SEGMENTS.out
+        .map { chrom, positions_chr, n_total_reads_case_chr, n_total_reads_control_chr,
+            n_methylated_reads_case_chr, n_methylated_reads_control_chr,
+            cpg_sites_merged_chr, regime_probabilities_csv, theta_trace_csv,
+            p_csv, kappa_csv, omega_csv, theta_csv, segments_file ->
+            // Subtract 2 to exclude the header row and due to starting at 0.
+            file(segments_file).readLines().size() - 2  
+        }
+
     INFER(
         ch_batch_indexes,
         ch_inference_seeds
@@ -393,6 +411,6 @@ workflow {
         )}
         .set { merged_infer_outputs }
 
-    AGGREGATE_RESULTS(merged_infer_outputs)
+    AGGREGATE_RESULTS(merged_infer_outputs, number_of_batches)
     GET_DMPS(AGGREGATE_RESULTS.out)
 }
