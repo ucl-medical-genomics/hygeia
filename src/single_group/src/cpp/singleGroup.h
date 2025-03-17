@@ -13,17 +13,6 @@
 #include "algorithms/OnlineCombinedInference.h"
 
 
-/// Type of methylation regime.
-enum MethylationRegimeType
-{ 
-  METHYLATION_REGIME_LARGE_MEAN_SMALL_SD = 0,
-  METHYLATION_REGIME_SMALL_MEAN_SMALL_SD,
-  METHYLATION_REGIME_LARGE_MEAN_LARGE_SD,
-  METHYLATION_REGIME_SMALL_MEAN_LARGE_SD,
-  METHYLATION_REGIME_MEDIUM_MEAN_LARGE_SD,
-  METHYLATION_REGIME_CHAOTIC
-};
-
 ///////////////////////////////////////////////////////////////////////////////
 // Implementation of the Model class template
 ///////////////////////////////////////////////////////////////////////////////
@@ -34,17 +23,17 @@ class LatentVariable
 public:
   
   /// Returns the index of the current regime.
-  MethylationRegimeType getMethylationRegimeType() const {return methylationRegimeType_;}
+  unsigned int getMethylationRegimeType() const {return methylationRegimeType_;}
   /// Returns the sojourn time for the current regime.
   unsigned int getSojournTime() const {return sojournTime_;}
   /// Specifies the index of the current regime.
-  void setMethylationRegimeType(const MethylationRegimeType methylationRegimeType) {methylationRegimeType_ = methylationRegimeType;}
+  void setMethylationRegimeType(const unsigned int methylationRegimeType) {methylationRegimeType_ = methylationRegimeType;}
   /// Specifies the sojourn time for the current regime.
   void setSojournTime(const unsigned int sojournTime) {sojournTime_ = sojournTime;}
   
 private:
   
-  MethylationRegimeType methylationRegimeType_; // the index of the current regime
+  unsigned int methylationRegimeType_; // the index of the current regime
   unsigned int sojournTime_; // the sojourn time in the current regime
 
 };
@@ -190,8 +179,6 @@ public:
     unsigned int R = nMethylationRegimes_;
     alpha_ = vartheta(arma::span(2,R+1));
     beta_ = vartheta(arma::span(R+2,2*R+1));
-//     setNSamples(static_cast<unsigned int>(vartheta(2*R+2)));
-//     setMeanNTotalReads(vartheta(2*R+3));
     setIsKappaFixed(static_cast<bool>(vartheta(2*R+2)));
     if (isKappaFixed_)
     {
@@ -275,7 +262,6 @@ public:
       }
     }
     
-//         std::cout << "first extension of auxiliary quantities"<< std::endl;
     for (unsigned int r=0; r<R; r++)
     {
       extendAuxiliaryQuantities(dMax_[r], r);
@@ -284,7 +270,6 @@ public:
   /// Calculates additional elements for the auxiliary quantities.
   void extendAuxiliaryQuantities(const unsigned int dMaxNew, const unsigned int r)
   {
-//             std::cout << "START: extension of auxiliary quantities"<< std::endl;
     unsigned int dMaxOld = littleH_[r].size();
     
     littleH_[r].reserve(dMaxNew);
@@ -347,7 +332,6 @@ public:
     }
     dMax_[r] = dMaxNew;
     
-//          std::cout << "END: extension of auxiliary quantities"<< std::endl;
   }
 
   /// Returns the probability of a change point 
@@ -423,7 +407,6 @@ public:
     if (d >= u_)
     { 
       return (static_cast<double>(d-u_)*(1.0 - omega_(r)) - kappa_(r)*omega_(r));
-//       return (static_cast<double>(d-u_)/omega_(r) - kappa_(r) /(1.0 - omega_(r))) * gradLogitEvaluatedAtInverseLogit(omega_(r));
     }
     else
     {
@@ -468,20 +451,13 @@ private:
   std::vector<std::vector<double>> littleH_, bigH_, rho_, gradThetaOmegaLogLittleH_, gradThetaOmegaBigH_, gradThetaOmegaLogRho_, gradThetaKappaLogLittleH_, gradThetaKappaBigH_, gradThetaKappaLogRho_;
   std::vector<std::vector<bool>> exitStatus_;
   std::vector<unsigned int> dMax_; // maximum (regime-specific) distances for which the above quantities are calculated
-  
-  
-  // The following constants are only used for generating
-  // synthetic data from the model:
-//   unsigned int nSamples_; // the number of samples at each time point
-//   double meanNTotalReads_; // the average number of reads at each time point (the numer of reads is then distributed according to a Poisson distribution with mean meanNTotalReads_).
+
 };
 
 /// Specifies the known hyperparameters.
 template <class ModelParameters, class LatentVariable, class Covariate, class Observation>
 void Model<ModelParameters, LatentVariable, Covariate, Observation>::setKnownParameters(const arma::colvec& vartheta)
 {
-//   std::cout << "START: setKnownModelParameters()" << std::endl;
-    
   modelParameters_.setKnownParameters(vartheta);
   unsigned int R = modelParameters_.getNMethylationRegimes();
   if (modelParameters_.getIsKappaFixed())
@@ -492,15 +468,12 @@ void Model<ModelParameters, LatentVariable, Covariate, Observation>::setKnownPar
   {
     setDimTheta(R * (R + 1));
   }
-//   std::cout << "END: setKnownModelParameters()" << std::endl;
 }
 /// Determines the model parameters from arma::colvec theta.
 template <class ModelParameters, class LatentVariable, class Covariate, class Observation>
 void Model<ModelParameters, LatentVariable, Covariate, Observation>::setUnknownParameters(const arma::colvec& theta)
 {
-//   std::cout << "START: setUnknownModelParameters()" << std::endl;
   modelParameters_.setUnknownParameters(theta);
-//   std::cout << "END: setUnknownModelParameters()" << std::endl;
 }
 /// Samples a single latent value from the prior on the transformed (generative-)model parameters.
 template <class ModelParameters, class LatentVariable, class Covariate, class Observation>
@@ -516,12 +489,10 @@ void Model<ModelParameters, LatentVariable, Covariate, Observation>::sampleFromI
 )
 {
   unsigned int R = modelParameters_.getNMethylationRegimes();
-//   unsigned int dCurr = 1;
   unsigned int rCurr = rng_.randomUniformInt(0,R-1);
   
   latentVariableCurr.setSojournTime(1);
-  latentVariableCurr.setMethylationRegimeType(static_cast<MethylationRegimeType>(rCurr));
-//   std::cout << "proposed regime at time 0: " << static_cast<MethylationRegimeType>(rCurr) << std::endl;
+  latentVariableCurr.setMethylationRegimeType(rCurr);
 }
 /// Samples a latent variable from the transition equation at time $t>0$. 
 template <class ModelParameters, class LatentVariable, class Covariate, class Observation>
@@ -533,39 +504,24 @@ void Model<ModelParameters, LatentVariable, Covariate, Observation>::sampleFromT
 )
 {
   unsigned int dPrev = latentVariablePrev.getSojournTime();
-  unsigned int rPrev = static_cast<unsigned int>(latentVariablePrev.getMethylationRegimeType());
+  unsigned int rPrev = latentVariablePrev.getMethylationRegimeType();
   unsigned int dCurr;
   unsigned int rCurr;
   arma::colvec prob;
   
-//   std::cout << "START: sampleFromTransitionEquation" << std::endl;
-//     std::cout << "rPrev: " << rPrev << "; dPrev: " << dPrev << std::endl;
-  
-//   std::cout << "START: computing rho" << std::endl;
-    
-//   bool exitStatus = false;
   double rho = modelParameters_.getRho(dPrev, rPrev);
-//   double rho = modelParameters_.evaluateChangePointProbability(t,dPrev,rPrev,exitStatus); // probability of a change point
-  
-  /*
-  if (std::abs(rho - modelParameters_.getRho(dPrev, rPrev)) > 0.000001)
-  {
-    std::cout << "rho difference in sampleFromTransitionEquation(): " << rho - modelParameters_.getRho(dPrev, rPrev) << std::endl;
-  }
-  */
+
   
   if (modelParameters_.getExitStatus(dPrev, rPrev))
   {
     std::cout << "WARNING: non-zero exit status of evaluateChangePointProbability() called by sampleFromTransitionEquation()" << std::endl; 
   }
   
-//   std::cout << "rho: " << rho << std::endl;
   
   if (arma::randu() <= rho)
   {
     dCurr = 1;
     prob = modelParameters_.getPTrans().col(rPrev);
-//     std::cout << "prob: " << prob.t() << std::endl;
     rCurr = sampleInt(prob);
   }
   else
@@ -574,7 +530,7 @@ void Model<ModelParameters, LatentVariable, Covariate, Observation>::sampleFromT
     rCurr = rPrev;
   }
   latentVariableCurr.setSojournTime(dCurr);
-  latentVariableCurr.setMethylationRegimeType(static_cast<MethylationRegimeType>(rCurr));
+  latentVariableCurr.setMethylationRegimeType(rCurr);
 }
 /// Samples a single observation from the observation equation at time $t>=0$.
 template <class ModelParameters, class LatentVariable, class Covariate, class Observation>
@@ -585,104 +541,20 @@ void Model<ModelParameters, LatentVariable, Covariate, Observation>::sampleFromO
   const LatentVariable& latentVariableCurr
 )
 {
-//   std::cout << "latentVariableCurr.getSojournTime(): " << latentVariableCurr.getSojournTime() << std::endl;
-//   std::cout << "latentVariableCurr.getMethylationRegimeType(): " << latentVariableCurr.getMethylationRegimeType() << std::endl;
+
+  unsigned int r = latentVariableCurr.getMethylationRegimeType();
   
 
-  /*
-  unsigned int S = 1; // make these accessible from the outside modelParameters_.getNSamples();
-  double meanNTotalReads = 100.0; // TODO: make these accessible from the outside modelParameters_.getMeanNTotalReads();
-  */
-  
-  unsigned int r = static_cast<unsigned int>(latentVariableCurr.getMethylationRegimeType());
-  
-//   std::cout << "r at time " << t << " :" << r << std::endl;
   double alpha = modelParameters_.getAlpha(r);
   double beta  = modelParameters_.getBeta(r);
   
-//     std::cout << "alpha, beta: " << alpha << "; "  << beta << std::endl;
-  
-//   arma::uvec nTotalReads(S); 
-  
   observation.set_size(covariates_[t].getNTotalReads().size()); 
-//   arma::uvec nMethylatedReads(S);
+
   for (unsigned s=0; s<observation.size(); s++)
   {
-//     nTotalReads(s)      = rng_.randomPoisson(meanNTotalReads);
     observation(s) = rng_.randomBetaBinomial(covariates_[t].getNTotalReads()(s), alpha, beta);
   }
-//   observation.setNTotalReads(nTotalReads);
-//   observation.setNMethylatedReads(nMethylatedReads);
 }
-/*
-/// Samples latent variables and observations from the model.
-template <class ModelParameters, class LatentVariable, class Covariate, class Observation>
-void Model<ModelParameters, LatentVariable, Covariate, Observation>::simulateData
-(
-  const unsigned int nObservations
-)
-{
-  
-  latentVariables_.resize(nObservations);
-  observations_.resize(nObservations);
-  
-  latentVariables_[1] = sampleFromInitialDistribution();
-  for (unsigned int t=1; t<nObservations; t++)
-  {
-    latentVariables_[t] = sampleFromObservationEquation(t, latentVariables_[t], latentVariables_[t-1]);
-  }
-  for (unsigned int t=0; t<nObservations; t++)
-  {
-    observations_[t] = sampleFromObservationEquation(t, latentVariables_[t]);
-  }
-  
-  double meanNTotalReads = 30.0; // TODO: make this available from the outside
-  unsigned int nSamples = 4; // TODO: make this available from the outside
-  
-
-  unsigned int R = modelParameters_.getNMethylationRegimes();
-
-  unsigned int d = 1;
-  MethylationRegimeType r = rng_.randomUniformInt(0,R-1);
-  latentVariables_[0].setSojournTime(d);
-  latentVariables_[0].setMethylationRegimeType(r);
-  
-  if (nObservations > 1)
-  {
-    for (unsigned int t=1; t<nObservations; t++)
-    {
-      if (arma::randu() <= modelParameters_.evaluateChangePointProbability(t,d,r))
-      {
-        d = 1;
-        r = sampleInt(modelParameters_.getPTrans().col(r));
-      }
-      else
-      {
-        d++;
-      }
-      latentVariables_[t].setSojournTime(d);
-      latentVariables_[t].setMethylationRegimeType(r);
-    }
-  }
-  
-  arma::uvec nTotalReads(nSamples);
-  arma::uvec nMethylatedReads(nSamples);
-  double alpha, beta;
-  for (unsigned int t=0; t<nObservations; t++)
-  {
-    for (unsigned s=0; s<nSamples; s++)
-    {
-      r     = latentVariables_[t].getMethylationRegimeType();
-      alpha = modelParameters_.getAlpha(r);
-      beta  = modelParameters_.getBeta(r);
-      nTotalReads(s)      = rng_.randomPoisson(meanNTotalReads);
-      nMethylatedReads(s) = rng_.randomBetaBinomial(nTotalReads(s), alpha, beta);
-    }
-    observations_[t].setNTotalReads(nTotalReads);
-    observations_[t].setNMethylatedReads(nMethylatedReads);
-  }
-}
-*/
 /// Evaluates the log-prior density associated with the initial state.
 template <class ModelParameters, class LatentVariable, class Covariate, class Observation>
 double Model<ModelParameters, LatentVariable, Covariate, Observation>::evaluateLogInitialDensity
@@ -703,24 +575,15 @@ double Model<ModelParameters, LatentVariable, Covariate, Observation>::evaluateL
 {
   unsigned int dCurr = latentVariableCurr.getSojournTime();
   unsigned int dPrev = latentVariablePrev.getSojournTime();
-  MethylationRegimeType rCurr = latentVariableCurr.getMethylationRegimeType();
-  MethylationRegimeType rPrev = latentVariablePrev.getMethylationRegimeType();
+  unsigned int rCurr = latentVariableCurr.getMethylationRegimeType();
+  unsigned int rPrev = latentVariablePrev.getMethylationRegimeType();
   double rho; 
   
   double logDensity = - std::numeric_limits<double>::infinity();
-//   bool exitStatus = false;
   
   if (dCurr == 1 && rCurr != rPrev && dPrev >= modelParameters_.getU())
   {
-//     rho = modelParameters_.evaluateChangePointProbability(t, dPrev, rPrev, exitStatus);
     rho = modelParameters_.getRho(dPrev, rPrev);
-    
-    /*
-      if (std::abs(rho - modelParameters_.getRho(dPrev, rPrev)) > 0.000001)
-      {
-        std::cout << "rho difference in evaluateLogTransitionDensity() with dCurr == 1: " << rho - modelParameters_.getRho(dPrev, rPrev) << "; exitStatus: " << exitStatus << "; rho: " << rho << "; getRho(): " << modelParameters_.getRho(dPrev, rPrev) << std::endl;
-      }
-    */
     
     if (modelParameters_.getExitStatus(dPrev, rPrev))
     {
@@ -733,44 +596,14 @@ double Model<ModelParameters, LatentVariable, Covariate, Observation>::evaluateL
   } 
   else if (dCurr > 1 && rCurr == rPrev)
   {
-//     rho = modelParameters_.evaluateChangePointProbability(t, dPrev, rPrev, exitStatus);
     rho = modelParameters_.getRho(dPrev, rPrev);
     
-    /*
-      if (std::abs(rho - modelParameters_.getRho(dPrev, rPrev)) > 0.000001)
-      {
-        std::cout << "rho difference in evaluateLogTransitionDensity() with dCurr > 1: " << rho - modelParameters_.getRho(dPrev, rPrev) << "; exitStatus: " << exitStatus << "; rho: " << rho << "; getRho(): " << modelParameters_.getRho(dPrev, rPrev) << std::endl;
-      }
-    */
-      
     if (!modelParameters_.getExitStatus(dPrev, rPrev) && rho <= 1) 
     {
       logDensity = std::log(1.0 - rho);
     }
   }
   return logDensity;
-  
-      ////////////////////////////////
-      /*
-    if (std::isnan(logDensity))
-      {
-        std::cout << "WARNING: " << 
-        << "rho: " 
-        << rho
-        << "; omega: " 
-        << modelParameters_.getOmega(rPrev)
-        << "; kappa: " 
-        << modelParameters_.getKappa(rPrev)
-        << "; dCurr: " << dCurr
-        << "; rCurr: " << rCurr
-        << "; dPrev: " << dPrev
-        << "; rPrev: " << rPrev
-        << "; logDensity: "
-        << logDensity
-        << std::endl;
-      }
-      */
-  ///////////////////////
   
 }
 /// Evaluates the log-observation density
@@ -781,7 +614,7 @@ double Model<ModelParameters, LatentVariable, Covariate, Observation>::evaluateL
   const LatentVariable& latentVariableCurr
 )
 {
-  unsigned int rCurr = static_cast<unsigned int>(latentVariableCurr.getMethylationRegimeType());
+  unsigned int rCurr = latentVariableCurr.getMethylationRegimeType();
   double alpha = modelParameters_.getAlpha(rCurr);
   double beta  = modelParameters_.getBeta(rCurr);
   double logDensity = 0.0;
@@ -799,7 +632,6 @@ arma::colvec Model<ModelParameters, LatentVariable, Covariate, Observation>::eva
   const LatentVariable& latentVariable
 )
 { 
-//   std::cout << "evaluateGradThetaLogInitialVarGamma" << std::endl;
   arma::colvec grad(getDimTheta(), arma::fill::zeros);
   return grad;
   
@@ -813,60 +645,14 @@ arma::colvec Model<ModelParameters, LatentVariable, Covariate, Observation>::eva
   const LatentVariable& latentVariablePrev
 )
 {
-  /// TODO: clean up this function and check correctness!
-  
-//   unsigned int R = modelParameters_.getNMethylationRegimes();
   unsigned int dCurr = latentVariableCurr.getSojournTime();
   unsigned int dPrev = latentVariablePrev.getSojournTime();
-  unsigned int rCurr = static_cast<unsigned int>(latentVariableCurr.getMethylationRegimeType());
-  unsigned int rPrev = static_cast<unsigned int>(latentVariablePrev.getMethylationRegimeType());
+  unsigned int rCurr = latentVariableCurr.getMethylationRegimeType();
+  unsigned int rPrev = latentVariablePrev.getMethylationRegimeType();
   unsigned int idxMin, idxMax, idx;
   
   arma::colvec grad(getDimTheta(), arma::fill::zeros);
 
-  /*
-  // Auxiliary quantities needed for the rest of the gradient.
-  double bigH = 0.0;
-  arma::colvec littleH(dPrev, arma::fill::zeros); // NOTE: the first element of this vector corresponds to distance $1$
-  for (unsigned int d=modelParameters_.getU()-1; d<dPrev; d++)
-  {
-    littleH(d) = modelParameters_.evaluateLittleH(d+1,rPrev);
-  }
-  if (dPrev > 1)
-  {
-    bigH = arma::sum(littleH(arma::span(0,dPrev-2)));
-  }
-  if (bigH >= 1.0) // TODO: this is not correct
-  { 
-    std::cout << "WARNING: bigH >= 1!" << std::endl;
-    bigH = 0.99999; // TODO
-  }
-  
-  // Gradient for the parameters governing the 
-  // "success probability" parameters of the negative-binomial
-  // distribution.
-  arma::colvec gradThetaLogLittleH(dPrev);
-  for (unsigned int d=0; d<dPrev; d++)
-  {
-    gradThetaLogLittleH(d) = modelParameters_.evaluateGradThetaOmegaLogLittleH(d+1,rPrev);
-  }
-  idx = modelParameters_.getIndexOmega(rPrev);
-  
-  grad(idx) = gradThetaLogLittleH(dPrev-1);
-  if (dPrev > 1)
-  {
-    for (unsigned int d=0; d<dPrev-1; d++)
-    {
-      grad(idx) = grad(idx) + (littleH(d) * gradThetaLogLittleH(d)) / (1.0 - bigH);
-    }
-//     grad(idx) = grad(idx) + arma::sum(littleH(arma::span(0,dPrev-2)) % gradThetaLogLittleH(arma::span(0,dPrev-2)),1)/ (1.0 - bigH);
-  }
-  
-  if (std::abs(grad(idx) - modelParameters_.getGradThetaOmegaLogRho(dPrev, rPrev)) > 0.000001)
-  {
-    std::cout << "rho difference in sampleFromTransitionEquation(): " << grad(idx) - modelParameters_.getGradThetaOmegaLogRho(dPrev, rPrev) << std::endl;
-  }
-  */
   
   idx = modelParameters_.getIndexOmega(rPrev);
   grad(idx) = modelParameters_.getGradThetaOmegaLogRho(dPrev, rPrev);
@@ -877,22 +663,6 @@ arma::colvec Model<ModelParameters, LatentVariable, Covariate, Observation>::eva
   // of the negative-binomial distribution.
   if (!modelParameters_.getIsKappaFixed())
   {
-    /*
-    for (unsigned int d=0; d<dPrev; d++)
-    {
-      gradThetaLogLittleH(d) = modelParameters_.evaluateGradThetaKappaLogLittleH(d+1,rPrev);
-    }
-    idx = modelParameters_.getIndexKappa(rPrev);
-    grad(idx) = gradThetaLogLittleH(dPrev-1);
-    if (dPrev > 1)
-    {
-      for (unsigned int d=0; d<dPrev-1; d++)
-      {
-        grad(idx) = grad(idx) + (littleH(d) * gradThetaLogLittleH(d)) / (1.0 - bigH);
-      }
-//       grad(idx) = grad(idx) + arma::sum(littleH(arma::span(0,dPrev-2)) % gradThetaLogLittleH(arma::span(0,dPrev-2)),1)/ (1.0 - bigH);
-    }
-    */
     idx = modelParameters_.getIndexOmega(rPrev);
     grad(idx) = modelParameters_.getGradThetaKappaLogRho(dPrev, rPrev);
   }
@@ -908,12 +678,10 @@ arma::colvec Model<ModelParameters, LatentVariable, Covariate, Observation>::eva
   } 
   else if (dCurr > 1 && rCurr == rPrev)
   {
-//     bool exitStatus = false;
-//     double rho = modelParameters_.evaluateChangePointProbability(t, dPrev, rPrev, exitStatus); // = littleH(dPrev-1) / (1.0 - bigH);
     
     double rho = modelParameters_.getRho(dPrev, rPrev);
     
-    if (!modelParameters_.getExitStatus(dPrev, rPrev) && rho < 1.0) // TODO: check if this will cause problems!
+    if (!modelParameters_.getExitStatus(dPrev, rPrev) && rho < 1.0)
     {
       idx = modelParameters_.getIndexOmega(rPrev);
       grad(idx) = - grad(idx) * rho / (1.0 - rho);
@@ -925,21 +693,14 @@ arma::colvec Model<ModelParameters, LatentVariable, Covariate, Observation>::eva
     }
     else
     {
-      grad.zeros(); // TODO: check if this is valid
+      grad.zeros();
     }
   }
   else // in this case, the transition density is zero!
   {
     grad.zeros();
   }
-  
-  /*
-  if (grad.has_nan()) 
-  {
-    
-    std::cout << "bigH calc manually: " << bigH << std::endl;
-  }
-  */
+
   
   return grad;
 }
@@ -969,13 +730,13 @@ public:
   /// Returns the latent variable.
   const LatentVariable& getLatentVariable() const {return latentVariable_;}
   /// Returns the index of the current regime.
-  unsigned int getRegime() const {return static_cast<unsigned int>(latentVariable_.getMethylationRegimeType());}
+  unsigned int getRegime() const {return latentVariable_.getMethylationRegimeType();}
   /// Returns the sojourn time for the current regime.
   unsigned int getDistance() const {return latentVariable_.getSojournTime();}
   /// Specifies the latent variable.
   void setLatentVariable(const LatentVariable& latentVariable) {latentVariable_ = latentVariable;}
   /// Specifies the index of the current regime.
-  void setRegime(const unsigned int regime) {latentVariable_.setMethylationRegimeType(static_cast<MethylationRegimeType>(regime));}
+  void setRegime(const unsigned int regime) {latentVariable_.setMethylationRegimeType(regime);}
   /// Specifies the sojourn time for the current regime.
   void setDistance(const unsigned int distance) {latentVariable_.setSojournTime(distance);}
   
@@ -1011,7 +772,7 @@ void Smc<ModelParameters, LatentVariable, Covariate, Observation, SmcParameters,
 {
   // Empty
 }
-  /// Evaluates the log-initial proposal density.
+/// Evaluates the log-initial proposal density.
 template <class ModelParameters, class LatentVariable, class Covariate, class Observation, class SmcParameters, class Particle>
 double Smc<ModelParameters, LatentVariable, Covariate, Observation, SmcParameters, Particle>::evaluateLogInitialProposalDensity
 ( 
@@ -1065,8 +826,7 @@ double OnlineMarginalSmoothing<ModelParameters, LatentVariable, Covariate, Obser
   const LatentVariable& latentVariableCurr
 )
 {
-//   std::cout << "storing " << testFunctionIndex << "th test function -- regime: " << latentVariableCurr.getMethylationRegimeType() << std::endl;
-  if (testFunctionIndex == static_cast<unsigned int>(latentVariableCurr.getMethylationRegimeType()))
+  if (testFunctionIndex == latentVariableCurr.getMethylationRegimeType())
   {
     return 1.0;
   }
@@ -1091,20 +851,18 @@ arma::uvec convertLatentVariableToArmaUvec(const LatentVariable& latentVariable)
 {
   arma::uvec latVec(2);
   latVec(0) = latentVariable.getSojournTime();
-  latVec(1) = static_cast<unsigned int>(latentVariable.getMethylationRegimeType());
+  latVec(1) = latentVariable.getMethylationRegimeType();
   return latVec;
 }
 /// Converts std::vector<LatentVariable> to arma::umat.
 arma::umat convertLatentVariablesToArmaUmat(const std::vector<LatentVariable>& latentVariables)
 {
-//     std::cout << "START: convertLatentVariablesToArmaUmat()" << std::endl; 
   unsigned int T = latentVariables.size();
   arma::umat latMat(2, T);
   for (unsigned int t=0; t<T; t++)
   {
     latMat.col(t) = convertLatentVariableToArmaUvec(latentVariables[t]);
   }
-//       std::cout << "END: convertLatentVariablesToArmaUmat()" << std::endl;
   return latMat;
 }
 /// Converts arma::uvec to LatentVariable.
@@ -1112,7 +870,7 @@ LatentVariable convertArmaUvecToLatentVariable(const arma::uvec& latVec)
 {
   LatentVariable latentVariable;
   latentVariable.setSojournTime(latVec(0));
-  latentVariable.setMethylationRegimeType(static_cast<MethylationRegimeType>(latVec(1)));
+  latentVariable.setMethylationRegimeType(latVec(1));
   return latentVariable;
 }
 /// Converts arma::umat to std::vector<LatentVariable>.
@@ -1134,7 +892,6 @@ std::vector<Covariate> convertArmaUmatToCovariates
 )
 {
   unsigned int T = nTotalReads.n_cols;
-//   unsigned int S = nTotalReads.n_rows;
   std::vector<Covariate> covariates(T);
   for (unsigned int t=0; t<T; t++)
   {

@@ -40,20 +40,19 @@ arma::colvec sampleFromParameterPriorCpp
 // [[Rcpp::export]]
 Rcpp::List simulateDataCpp
 (
-  const unsigned int nObservations, // number of observations
-  const arma::colvec& vartheta, // hyperparameters 
-  const arma::colvec& theta, // parameters
+  const unsigned int nObservations,          // number of observations
+  const arma::colvec& vartheta,              // hyperparameters
+  const arma::colvec& theta,                 // parameters
   const arma::uvec& genomicPositions,        // the genomic positions of each CpG site
   const arma::umat& nTotalReads,             // the no of (methylated + unmethylated) reads for each sample at each CpG site
-  const bool randomiseRngSeed,  // should the random-number-generator seed be randomised?
-  const int rngSeed             // random-number-generator seed (only used if randomiseRngSeed is set to false)
+  const bool randomiseRngSeed,               // should the random-number-generator seed be randomised?
+  const int rngSeed                          // random-number-generator seed (only used if randomiseRngSeed is set to false)
 )
 {
   Rng rng;
   if (!randomiseRngSeed)
   {
     rng.setSeed(rngSeed);
-    // arma::arma_rng::set_seed(rngSeed);
   }
 
   Model<ModelParameters, LatentVariable, Covariate, Observation> model(rng);
@@ -61,8 +60,7 @@ Rcpp::List simulateDataCpp
   model.setUnknownParameters(theta);
   model.setCovariates(convertArmaUmatToCovariates(genomicPositions, nTotalReads));
   model.simulateData(nObservations);
-  
-//   std::cout << "END: simulateDataCpp()" << std::endl;
+
   return Rcpp::List::create
   (
     Rcpp::Named("latentVariables")  = convertLatentVariablesToArmaUmat(model.getLatentVariables()),
@@ -77,24 +75,24 @@ Rcpp::List simulateDataCpp
 // [[Rcpp::export]]
 Rcpp::List runOnlineCombinedInferenceCpp
 (
-  const arma::colvec& vartheta,              // hyperparameters and other auxiliary model parameters
-  const arma::colvec& thetaInit,             // initial value for the model-parameter vector theta
-  const arma::uvec& genomicPositions,        // the genomic positions of each CpG site
-  const arma::umat& nTotalReads,             // the no of (methylated + unmethylated) reads for each sample at each CpG site
-  const arma::umat& nMethylatedReads,        // the no of methylated reads for each sample at each CpG site
-  const unsigned int nParticlesMax,          // maximum number particles used by the SMC algorithm
-  const unsigned int smcProposalType,        // type of particle proposals to use
-  const unsigned int smcResampleType,        // type of resampling scheme to use
-  const bool useOnlineMarginalSmoothing,     // determines if we should estimate the expectations of the regimes under the marginal smoothing distributions
-  const double epsilon,                      // tuning parameter for the online-smoothing algorithm
-  const bool useOnlineParameterEstimation,   // determines if the model parameters should be updated throughout the algorithm (otherwise they are fixed at their initial values)
-  const bool normaliseGradients,             // should the gradients be normalised according to their $L_1$ norm?
-  const bool useAdam,                        // should the ADAM optimiser be used (otherwise it is plain stochastic gradient ascent)
-  const unsigned int nStepsWithoutParameterUpdate, // number of SMC steps without parameter updates
-  const double learningRateExponent,         // the exponent governing the learning-rate decay
-  const double learningRateFactor,           // the factor governing the learning-rate decay
-  const bool randomiseRngSeed,  // should the random-number-generator seed be randomised?
-  const int rngSeed             // random-number-generator seed (only used if randomiseRngSeed is set to false)
+  const arma::colvec& vartheta,                     // hyperparameters and other auxiliary model parameters
+  const arma::colvec& thetaInit,                    // initial value for the model-parameter vector theta
+  const arma::uvec& genomicPositions,               // the genomic positions of each CpG site
+  const arma::umat& nTotalReads,                    // the no of (methylated + unmethylated) reads for each sample at each CpG site
+  const arma::umat& nMethylatedReads,               // the no of methylated reads for each sample at each CpG site
+  const unsigned int nParticlesMax,                 // maximum number particles used by the SMC algorithm
+  const unsigned int smcProposalType,               // type of particle proposals to use
+  const unsigned int smcResampleType,               // type of resampling scheme to use
+  const bool useOnlineMarginalSmoothing,            // determines if we should estimate the expectations of the regimes under the marginal smoothing distributions
+  const double epsilon,                             // tuning parameter for the online-smoothing algorithm
+  const bool useOnlineParameterEstimation,          // determines if the model parameters should be updated throughout the algorithm (otherwise they are fixed at their initial values)
+  const bool normaliseGradients,                    // should the gradients be normalised according to their $L_1$ norm?
+  const bool useAdam,                               // should the ADAM optimiser be used (otherwise it is plain stochastic gradient ascent)
+  const unsigned int nStepsWithoutParameterUpdate,  // number of SMC steps without parameter updates
+  const double learningRateExponent,                // the exponent governing the learning-rate decay
+  const double learningRateFactor,                  // the factor governing the learning-rate decay
+  const bool randomiseRngSeed,                      // should the random-number-generator seed be randomised?
+  const int rngSeed                                 // random-number-generator seed (only used if randomiseRngSeed is set to false)
 )
 {
 
@@ -107,7 +105,6 @@ Rcpp::List runOnlineCombinedInferenceCpp
   if (!randomiseRngSeed)
   {
     rng.setSeed(rngSeed);
-    // arma::arma_rng::set_seed(rngSeed);
   }
 
 
@@ -115,9 +112,7 @@ Rcpp::List runOnlineCombinedInferenceCpp
   /////////////////////////////////////////////////////////////////////////////
   // Model class.
   /////////////////////////////////////////////////////////////////////////////
-  
-//   std::cout << "set up Model class" << std::endl;
-  
+
   Model<ModelParameters, LatentVariable, Covariate, Observation> model(rng);
   model.setKnownParameters(vartheta);
   model.setCovariates(convertArmaUmatToCovariates(genomicPositions, nTotalReads));
@@ -127,9 +122,7 @@ Rcpp::List runOnlineCombinedInferenceCpp
   /////////////////////////////////////////////////////////////////////////////
   // Class for running the SMC algorithm.
   /////////////////////////////////////////////////////////////////////////////
-  
-//   std::cout << "set up Smc class" << std::endl;
-  
+
   Smc<ModelParameters, LatentVariable, Covariate, Observation, SmcParameters, Particle<LatentVariable>> smc(rng, model);
   smc.setSmcResampleType(static_cast<SmcResampleType>(smcResampleType));
   smc.setSmcProposalType(static_cast<SmcProposalType>(smcProposalType));
@@ -140,8 +133,6 @@ Rcpp::List runOnlineCombinedInferenceCpp
   // Class for approximating expectations w.r.t. marginal smoothing distributions.
   /////////////////////////////////////////////////////////////////////////////
 
-//   std::cout << "set up OnlineMarginalSmoothing class" << std::endl;
-  
   OnlineMarginalSmoothing<ModelParameters, LatentVariable, Covariate, Observation, SmcParameters, Particle<LatentVariable>>
   onlineMarginalSmoothing(rng, model, smc);
   
@@ -153,16 +144,13 @@ Rcpp::List runOnlineCombinedInferenceCpp
   /////////////////////////////////////////////////////////////////////////////
   // Class for online parameter estimation.
   /////////////////////////////////////////////////////////////////////////////
-  
-//   std::cout << "set up OnlineParameterEstimation class" << std::endl;
-  
+
   GradientAscent gradientAscent;
   OnlineParameterEstimation<ModelParameters, LatentVariable, Covariate, Observation, SmcParameters, Particle<LatentVariable>>
   onlineParameterEstimation(rng, model, smc, gradientAscent);
   
   if (useOnlineParameterEstimation)
   {
-//     std::cout << "in CPP file: learningRateExponent: " << learningRateExponent << std::endl;
     gradientAscent.setNormaliseGradients(normaliseGradients);
     gradientAscent.setUseAdam(useAdam);
     gradientAscent.setLearningRateExponent(learningRateExponent);
@@ -175,8 +163,6 @@ Rcpp::List runOnlineCombinedInferenceCpp
   // Class for running the overall combined online inference algorithm.
   /////////////////////////////////////////////////////////////////////////////
   
-//   std::cout << "set up OnlineCombinedInference class" << std::endl;
-  
   OnlineCombinedInference<ModelParameters, LatentVariable, Covariate, Observation, SmcParameters, Particle<LatentVariable>>
   onlineCombinedInference(rng, model, smc, onlineMarginalSmoothing, onlineParameterEstimation);
   onlineCombinedInference.setNSteps(model.getNObservations());
@@ -186,8 +172,6 @@ Rcpp::List runOnlineCombinedInferenceCpp
   /////////////////////////////////////////////////////////////////////////////
   // Running the combined online inference algorithm.
   /////////////////////////////////////////////////////////////////////////////
-  
-//   std::cout << "running the online inference algorithm" << std::endl;
   
   std::vector<arma::colvec> regimeProbabilityEstimates;
   std::vector<arma::colvec> thetaEstimates;
@@ -233,9 +217,7 @@ Rcpp::List approximateLogNormalisingConstantCpp
   /////////////////////////////////////////////////////////////////////////////
   // Model class.
   /////////////////////////////////////////////////////////////////////////////
-  
-//   std::cout << "set up Model class" << std::endl;
-  
+
   Model<ModelParameters, LatentVariable, Covariate, Observation> model(rng);
   model.setKnownParameters(vartheta);
   model.setCovariates(convertArmaUmatToCovariates(genomicPositions, nTotalReads));
@@ -246,8 +228,6 @@ Rcpp::List approximateLogNormalisingConstantCpp
   // Class for running the SMC algorithm.
   /////////////////////////////////////////////////////////////////////////////
   
-//   std::cout << "set up Smc class" << std::endl;
-  
   Smc<ModelParameters, LatentVariable, Covariate, Observation, SmcParameters, Particle<LatentVariable>> smc(rng, model);
   smc.setSmcResampleType(static_cast<SmcResampleType>(smcResampleType));
   smc.setSmcProposalType(static_cast<SmcProposalType>(smcProposalType));
@@ -257,8 +237,6 @@ Rcpp::List approximateLogNormalisingConstantCpp
   /////////////////////////////////////////////////////////////////////////////
   // Class for approximating expectations w.r.t. marginal smoothing distributions.
   /////////////////////////////////////////////////////////////////////////////
-
-//   std::cout << "set up OnlineMarginalSmoothing class" << std::endl;
   
   OnlineMarginalSmoothing<ModelParameters, LatentVariable, Covariate, Observation, SmcParameters, Particle<LatentVariable>>
   onlineMarginalSmoothing(rng, model, smc);
@@ -267,8 +245,6 @@ Rcpp::List approximateLogNormalisingConstantCpp
   // Class for online parameter estimation.
   /////////////////////////////////////////////////////////////////////////////
   
-//   std::cout << "set up OnlineParameterEstimation class" << std::endl;
-  
   GradientAscent gradientAscent;
   OnlineParameterEstimation<ModelParameters, LatentVariable, Covariate, Observation, SmcParameters, Particle<LatentVariable>>
   onlineParameterEstimation(rng, model, smc, gradientAscent);
@@ -276,8 +252,6 @@ Rcpp::List approximateLogNormalisingConstantCpp
   /////////////////////////////////////////////////////////////////////////////
   // Class for running the overall combined online inference algorithm.
   /////////////////////////////////////////////////////////////////////////////
-  
-//   std::cout << "set up OnlineCombinedInference class" << std::endl;
   
   OnlineCombinedInference<ModelParameters, LatentVariable, Covariate, Observation, SmcParameters, Particle<LatentVariable>>
   onlineCombinedInference(rng, model, smc, onlineMarginalSmoothing, onlineParameterEstimation);
@@ -288,8 +262,6 @@ Rcpp::List approximateLogNormalisingConstantCpp
   /////////////////////////////////////////////////////////////////////////////
   // Running the combined online inference algorithm.
   /////////////////////////////////////////////////////////////////////////////
-  
-//   std::cout << "approximating the normalising constants" << std::endl;
 
   arma::colvec logNormalisingConstantEst(nReplicates);
   std::vector<arma::colvec> regimeProbabilityEstimates; // NOTE: not really used here

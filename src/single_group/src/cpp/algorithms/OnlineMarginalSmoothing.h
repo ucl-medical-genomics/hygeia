@@ -1,7 +1,10 @@
 /// \file
-/// \brief Implements an the adaptive online smoother from 
+/// \brief Implements an adaptive fixed-lag smoothing algorithm
 ///
-/// This file contains the functions for implementing 
+/// This file contains the functions for implementing (a variant of) the adaptive
+///  fixed-lag smoothing procedure from:
+///
+/// Alenlöv, J., & Olsson, J. (2019). Particle-based adaptive-lag online marginal smoothing in general state-space models. IEEE Transactions on Signal Processing, 67(21), 5571-5582.
 
 
 #ifndef __ONLINEMARGINALSMOOTHING_H
@@ -9,7 +12,7 @@
 
 #include "algorithms/Smc.h"
 
-/// Class for 
+/// Class for the online adaptive fixed-lag smoothing procedure.
 template <class ModelParameters, class LatentVariable, class Covariate, class Observation,  class SmcParameters, class Particle> class OnlineMarginalSmoothing
 {
 public:
@@ -36,34 +39,26 @@ public:
   /// Computes the marginal smoothing estimates at the initial time step.
   void initialise
   (
-    std::vector<double>& functionalEstimatesAux, 
-    std::vector<unsigned int>& timeIndicesAux, 
-    std::vector<unsigned int>& testFunctionIndicesAux
+    std::vector<arma::colvec>& functionalEstimatesAux,
+    std::vector<unsigned int>& timeIndicesAux
   )
   {
     psiCurr_.resize(0);
     psiTimeIndices_.resize(0);
-    psiTestFunctionIndices_.resize(0);
     initialisePsi();
-    storeEstimates(functionalEstimatesAux, timeIndicesAux, testFunctionIndicesAux);
+    storeEstimates(functionalEstimatesAux, timeIndicesAux);
   }
   /// Computes and updates all smoothing estimates at the current time step.
   void update
   (
-    std::vector<double>& functionalEstimatesAux, 
-    std::vector<unsigned int>& timeIndicesAux, 
-    std::vector<unsigned int>& testFunctionIndicesAux
+    std::vector<arma::colvec>& functionalEstimatesAux,
+    std::vector<unsigned int>& timeIndicesAux
   )
   {
-//     std::cout << "psiCurr_.swap(psiPrev_):" << std::endl;
     psiPrev_ = psiCurr_; // can't do .swap() here because both psiCurr_ needs to have the same size as psiPrev_
-//       std::cout << "updatePsi():" << std::endl;
     updatePsi();
-//       std::cout << "initialisePsi():" << std::endl;
     initialisePsi();
-//       std::cout << "storeEstimates():" << std::endl;
-    storeEstimates(functionalEstimatesAux, timeIndicesAux, testFunctionIndicesAux);
-//     std::cout << "end storeEstimates()" << std::endl;
+    storeEstimates(functionalEstimatesAux, timeIndicesAux);
     
   }
   
@@ -123,64 +118,59 @@ private:
   /// Evaluates the test function at some time 
   void initialisePsi()
   {
-//     std::cout << "start initialisePsi()" << std::endl;
     unsigned int t = getStep();
     unsigned int N = getNParticlesCurr();
     unsigned int R = getNTestFunctions();
     
     unsigned int S = psiTimeIndices_.size();
-    if (psiCurr_.capacity() <= psiCurr_.size() + R)
+    if (psiCurr_.capacity() <= psiCurr_.size() + 1)
     {
-      psiCurr_.reserve(S + 2 * R);
+      psiCurr_.reserve(S + 2);
     }
     
-    if (psiTimeIndices_.capacity() <= psiTimeIndices_.size() + R)
+    if (psiTimeIndices_.capacity() <= psiTimeIndices_.size() + 1)
     {
-      psiTimeIndices_.reserve(S + 2 * R);
+      psiTimeIndices_.reserve(S + 2);
     }
-    if (psiTestFunctionIndices_.capacity() <= psiTestFunctionIndices_.size() + R)
-    {
-      psiTestFunctionIndices_.reserve(S + 2 * R);
-    }
-    std::vector<double> psiCurrAux(getNParticlesMax());
+    std::vector<std::vector<double>> psiCurrAux(R);
     for (unsigned int r = 0; r < R; r++)
     {
-      psiTimeIndices_.push_back(t);
-      psiTestFunctionIndices_.push_back(r);
+      psiCurrAux[r].resize(getNParticlesMax());
       for (unsigned int n = 0; n < N; n++)
       {
-        psiCurrAux[n] = evaluateTestFunction(t, r, getLatentVariableCurr(n));
+        psiCurrAux[r][n] = evaluateTestFunction(t, r, getLatentVariableCurr(n));
       }
-      psiCurr_.push_back(psiCurrAux);
     }
-//     std::cout << "end initialisePsi()" << std::endl;
+    psiTimeIndices_.push_back(t);
+    psiCurr_.push_back(psiCurrAux);
   }
   /// Evaluates the test function at some time 
   void updatePsi()
   {
-//     std::cout << "start updatePsi()" << std::endl;
     unsigned int N = getNParticlesCurr();
     unsigned int S = psiCurr_.size();
+    unsigned int R = getNTestFunctions();
+
     if (getSmcProposalType() == SMC_PROPOSAL_CHANGE_POINT_MODEL)
     {
       unsigned int R = getNTestFunctions();
       unsigned int M = N - R;
       for (unsigned int s = 0; s < S; s++)
       {
-        for (unsigned int n = 0; n < M; n++)
-        {
-          psiCurr_[s][n] = psiPrev_[s][getAncestorIndicesCurr(n)];
-        }
         for (unsigned int r = 0; r < R; r++)
         {
-//           std::cout << "psiCurr_[s].size(): " << psiCurr_[s].size() << "; nParticlesCurr_: " << N << std::endl;
-//           std::cout << "psiPrev_[s].size(): " << psiPrev_[s].size() << "; getBackwardKernels()[r].size(): " << getBackwardKernels()[r].size() << std::endl;
-     
-          psiCurr_[s][M + r] = 0;
-          
-          for (unsigned int n = 0; n < getNParticlesPrev(); n++)
+          for (unsigned int n = 0; n < M; n++)
           {
-            psiCurr_[s][M + r] = psiCurr_[s][M + r] + getBackwardKernels()[r](n) * psiPrev_[s][n]; 
+            psiCurr_[s][r][n] = psiPrev_[s][r][getAncestorIndicesCurr(n)];
+          }
+          for (unsigned int q = 0; q < R; q++)
+          {
+            psiCurr_[s][r][M + q] = 0;
+
+            for (unsigned int n = 0; n < getNParticlesPrev(); n++)
+            {
+              psiCurr_[s][r][M + q] = psiCurr_[s][r][M + q] + getBackwardKernels()[q](n) * psiPrev_[s][r][n];
+            }
           }
         }
       }
@@ -189,87 +179,87 @@ private:
     {
       for (unsigned int s = 0; s < S; s++)
       {
-        for (unsigned int n = 0; n < N; n++)
+        for (unsigned int r = 0; r < R; r++)
         {
-          psiCurr_[s][n] = 0;
-          for (unsigned int m = 0; m < getNParticlesPrev(); m++)
+          for (unsigned int n = 0; n < N; n++)
           {
-            psiCurr_[s][n] = psiCurr_[s][n] + getBackwardKernels()[n](m) * psiPrev_[s][m];
+            psiCurr_[s][r][n] = 0;
+            for (unsigned int m = 0; m < getNParticlesPrev(); m++)
+            {
+              psiCurr_[s][r][n] = psiCurr_[s][r][n] + getBackwardKernels()[n](m) * psiPrev_[s][r][m];
+            }
           }
         }
       }
     }
-//     std::cout <<  "end updatePsi()" << std::endl;
   }
   /// Computes the estimates of the smoothed test function.
   void storeEstimates
   (
-    std::vector<double>& functionalEstimatesAux, 
-    std::vector<unsigned int>& timeIndicesAux, 
-    std::vector<unsigned int>& testFunctionIndicesAux
+    std::vector<arma::colvec>& functionalEstimatesAux,
+    std::vector<unsigned int>& timeIndicesAux
   )
   {
-//     std::cout << "start storeEstimates()" << std::endl;
-    
+
     unsigned int S = psiCurr_.size();
-    
-//     std::cout << "S: " << S << std::endl;
-//     std::cout << "psiCurr_.capacity(): " << psiCurr_.capacity() << std::endl;
+    unsigned int R = getNTestFunctions();
     
     std::vector<unsigned int> psiTimeIndicesAux(0);
-    std::vector<unsigned int> psiTestFunctionIndicesAux(0);
-    std::vector<std::vector<double>> psiCurrAux(0);
+    std::vector<std::vector<std::vector<double>>> psiCurrAux(0);
     
-//     std::cout << "storeEstimates(), reserve" << std::endl;
     psiTimeIndicesAux.reserve(S);
-    psiTestFunctionIndicesAux.reserve(S);
     psiCurrAux.reserve(S);
     
-//     std::cout << "storeEstimates(), loop" << std::endl;
     for (unsigned int s = 0; s < S; s++)
     {
-//       std::cout << "s: " << s << std::endl;
-      // Store the those estimates whose variance is below the threshold.
-      if (smc_.computeFilteredVariance(psiCurr_[s]) < getEpsilon() || getIsFinalStep())
+
+      bool storeEstimateAux = true;
+      if (!getIsFinalStep())
       {
-        functionalEstimatesAux.push_back(smc_.computeFilteredMean(psiCurr_[s]));
+        /// NOTE: In slight contrast to Alenlöv, J., & Olsson, J. (2019), we only store the estimate
+        /// of the $r$th functional from time $t$ once the variances of /all/ functionals
+        /// from time $t$ are below the threshold $\varepsilon$. In the change-point model ,
+        /// this ensures that the regime-probability estimates are guaranteed to sum to $1$.
+        unsigned int r = 0;
+        while ((r < R) && (smc_.computeFilteredVariance(psiCurr_[s][r]) < getEpsilon()))
+        {
+          r++;
+        }
+        if (r < R) {
+          storeEstimateAux = false;
+        }
+      }
+
+
+      if (storeEstimateAux)
+      {
+        arma::colvec functionalEstimateAuxSingle(R);
+        for (unsigned int r = 0; r < R; ++r)
+        {
+          functionalEstimateAuxSingle(r) = smc_.computeFilteredMean(psiCurr_[s][r]);
+        }
+        functionalEstimatesAux.push_back(functionalEstimateAuxSingle);
         timeIndicesAux.push_back(psiTimeIndices_[s]);
-        testFunctionIndicesAux.push_back(psiTestFunctionIndices_[s]);
       }
       else // Otherwise, keep the following estimates.
       {
         psiTimeIndicesAux.push_back(psiTimeIndices_[s]);
-        psiTestFunctionIndicesAux.push_back(psiTestFunctionIndices_[s]);
         psiCurrAux.push_back(psiCurr_[s]);
       }
     }
     
-//     std::cout << "soreEstimates(), swap" << std::endl;
-    // Put the "kept" estimates back into the vectors.
-    
-//     std::cout << "psiTimeIndices_.capacity(): " << psiTimeIndices_.capacity()  << "; psiTimeIndicesAux.size(): " << psiTimeIndicesAux.size() << std::endl;
-//     std::cout << "psiTestFunctionIndices_.capacity(): " << psiTestFunctionIndices_.capacity()  << "; psiTestFunctionIndicesAux.size(): " << psiTestFunctionIndicesAux.size() << std::endl;
-//     std::cout << "psiCurr_.capacity(): " << psiCurr_.capacity()  << "; psiCurrAux.size(): " << psiCurrAux.size() << std::endl;
-    
 
     psiTimeIndices_.swap(psiTimeIndicesAux);
-    psiTestFunctionIndices_.swap(psiTestFunctionIndicesAux);
     psiCurr_.swap(psiCurrAux);
     
-//     psiTimeIndices_ = psiTimeIndicesAux;
-//     psiTestFunctionIndices_ = psiTestFunctionIndicesAux;
-//     psiCurr_ = psiCurrAux;
-    
-//     std::cout << "end storeEstimates()" << std::endl;
   }
 
   Rng& rng_; // random number generation.
   Model<ModelParameters, LatentVariable, Covariate, Observation>& model_; // the targeted model.
   Smc<ModelParameters, LatentVariable, Covariate, Observation, SmcParameters, Particle>& smc_; // the SMC algorithm
   double epsilon_; // the variance threshold 
-  std::vector<std::vector<double>> psiCurr_, psiPrev_; // auxiliary quantities used for computing the estimates of smoothed functionals
+  std::vector<std::vector<std::vector<double>>> psiCurr_, psiPrev_; // auxiliary quantities used for computing the estimates of smoothed functionals
   std::vector<unsigned int> psiTimeIndices_; // stores the auxiliary time indices of the estimated test functions
-  std::vector<unsigned int> psiTestFunctionIndices_; // stores the auxiliary indices of the type of estimated test function  
   bool isFinalStep_; // has the final SMC step been reached?
 };
 #endif
