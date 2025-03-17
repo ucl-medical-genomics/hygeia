@@ -1,7 +1,8 @@
 /// \file
-/// \brief Implements an the adaptive online smoother from 
+/// \brief Combines both marginal smoothing and online parameter estimates
 ///
-/// This file contains the functions for implementing 
+/// This file contains the functions for implementing joint online parameter estimation and
+/// online fixed-lag approximation of some smoothed functionals.
 
 
 #ifndef __ONLINECOMBINEDINFERENCE_H
@@ -51,27 +52,21 @@ public:
   )
   {
     // stores the parameter estimates
-    std::vector<double> functionalEstimatesAux; // stores the smoothed test function estimates associated with different (timeIndex, testFunctionIndex)-pairs which can be read from the following two vectors:
+    std::vector<arma::colvec> functionalEstimatesAux; // stores the smoothed test function estimates associated with different timeIndex which can be read from the following vector:
     std::vector<unsigned int> timeIndicesAux; // stores the time indices associated with the smoothed test function estimates
-    std::vector<unsigned int> testFunctionIndicesAux; // stores the test function indices associated with the smoothed test function estimates
     
     unsigned int T = getNSteps();
-    unsigned int R = getNTestFunctions();
-    unsigned int S = T * R;
+    // unsigned int R = getNTestFunctions();
+    unsigned int S = T;
     smc_.initialise();
     if (useOnlineMarginalSmoothing_)
     {
-//       std::cout << "useOnlineMarginalSmoothing at time /*0*/" << std::endl;
       functionalEstimatesAux.reserve(S);
       timeIndicesAux.reserve(S);
-      testFunctionIndicesAux.reserve(S);
-//       std::cout << "finished resizing marginal smoothing output vectors" << std::endl;
-      
-      onlineMarginalSmoothing_.initialise(functionalEstimatesAux, timeIndicesAux, testFunctionIndicesAux);
+      onlineMarginalSmoothing_.initialise(functionalEstimatesAux, timeIndicesAux);
     }
     if (useOnlineParameterEstimation_)
     {
-//       std::cout << "useOnlineParameterEstimation at time 0" << std::endl;
       thetaEstimates.reserve(T);
       onlineParameterEstimation_.initialise(thetaEstimates); 
     }
@@ -87,50 +82,35 @@ public:
           std::cout << "P: " << model_.getModelParameters().getP() << std::endl;
           std::cout << "omega: " << model_.getModelParameters().getOmega().t() << std::endl;
         } 
-//         std::cout << "resample type: " << smc_.getSmcResampleType() << std::endl;
-//         std::cout << "proposal type: " << smc_.getSmcProposalType() << std::endl;
       }
-
       smc_.iterate();
-//       std::cout << "smc_.iterate() complete at time " << t << std::endl;
       smc_.evaluateBackwardKernels();
-//       std::cout << "smc_.evaluateBackwardKernels() complete at time " << t << std::endl;
       
       if (useOnlineMarginalSmoothing_)
       {
-//         std::cout << "useOnlineMarginalSmoothing at time " << t << std::endl;
         if (t == T-1)
         {
           onlineMarginalSmoothing_.setIsFinalStep(true);
         }
-//         std::cout << "START: onlineMarginalSmoothing_.update() at time " << t << std::endl;
-        onlineMarginalSmoothing_.update(functionalEstimatesAux, timeIndicesAux, testFunctionIndicesAux);
-//         std::cout << "END: onlineMarginalSmoothing_.update() at time " << t << std::endl;
+        onlineMarginalSmoothing_.update(functionalEstimatesAux, timeIndicesAux);
       }
       if (useOnlineParameterEstimation_)
       {
-//         std::cout << "START: onlineParameterEstimation_.update() at time " << t << std::endl;
         onlineParameterEstimation_.update(thetaEstimates);
-//         std::cout << "END: onlineParameterEstimation_.update() at time " << t << std::endl;
       }
     }
     
-//     std::cout << "OnlineCombinedInference iterations complete!" << std::endl;
-    
     // Rearranging the output:
+    // NOTE: If we are really storing all the estimates in memory, then this can be simplified by
+    // simply storing the estimates for time step $t$ in the $t$th position of the vector.
     if (useOnlineMarginalSmoothing_)
     {
       functionalEstimates.resize(T);
-      for (unsigned int t = 0; t < T; t++)
-      {
-        functionalEstimates[t].set_size(R);
-      }
-      unsigned int t, r;
+      unsigned int t;
       for (unsigned int s = 0; s < S; s++)
       {
         t = timeIndicesAux[s];
-        r = testFunctionIndicesAux[s];
-        functionalEstimates[t](r) = functionalEstimatesAux[s];
+        functionalEstimates[t] = functionalEstimatesAux[s];
       }
     }
   }

@@ -1,7 +1,9 @@
 /// \file
-/// \brief Implements an the adaptive online smoother from 
+/// \brief Implements a SMC-based online gradient-ascent algorithm for parameter estimation.
 ///
-/// This file contains the functions for implementing 
+/// This file contains the functions for implementing the online, sequential Monte Carlo based
+/// stochastic-gradient-ascent type static-parameter estimation method from
+/// Poyiadjis, G., Doucet, A., & Singh, S. S. (2011). Particle approximations of the score and observed information matrix in state space models with application to parameter estimation. Biometrika, 98(1), 65-80.
 
 
 #ifndef __ONLINEPARAMETERESTIMATION_H
@@ -10,7 +12,7 @@
 #include "algorithms/Smc.h"
 #include "misc/GradientAscent.h"
 
-/// Class for 
+/// Class for the online SMC-based stochastic gradient-ascent procedure.
 template <class ModelParameters, class LatentVariable, class Covariate, class Observation, class SmcParameters, class Particle> class OnlineParameterEstimation
 {
 public:
@@ -48,17 +50,13 @@ public:
   /// Computes and updates all smoothing estimates at the current time step.
   void update(std::vector<arma::colvec>& thetaEstimates)
   {
-//     std::cout << "start updatePhi()" << std::endl;
     updatePhi();
-//     std::cout << "end updatePhi()" << std::endl;
-//     std::cout << "start updateGradients()" << std::endl;
     if (getStep() % nStepsWithoutParameterUpdate_ == 0)
     {
       updateGradients();
       gradientAscent_.iterate(theta_, gradientCurr_ - gradientPrev_);
       model_.setUnknownParameters(theta_);
     }
-//     std::cout << "push back thetaEstimates" << std::endl;
     thetaEstimates.push_back(theta_);
   }
   
@@ -136,9 +134,6 @@ private:
   /// gradient estimates are computed.
   void updatePhi()
   {
-//     phiCurr_.swap(phiPrev_);
-      
-//     std::cout << "overwrite phiPrev_ with phiCurr_" << std::endl;
     phiPrev_ = phiCurr_; // TODO: make this more efficient
     unsigned int N = getNParticlesCurr();
     phiCurr_.resize(N); // NOTE: this means every element of phiCurr_ needs to be resized too!
@@ -148,19 +143,15 @@ private:
       unsigned int R = smc_.getNRegimes();
       unsigned int M = N - R;
       
-//       std::cout << "updatePhi(), Part 1" << std::endl;
       for (unsigned int n = 0; n < M; n++)
       {
         phiCurr_[n] = phiPrev_[getAncestorIndicesCurr(n)] + evaluateGradThetaLogVarGamma(n, getAncestorIndicesCurr(n));
       }
-//       std::cout << "updatePhi(), Part 2" << std::endl;
       for (unsigned int r = 0; r < R; r++)
       {
         phiCurr_[M + r].zeros(getDimTheta());
-//         std::cout << "phiCurr_[M+r].size(): " << phiCurr_[M+r].size() << std::endl;
         for (unsigned int n = 0; n < getNParticlesPrev(); n++)
         {
-//           std::cout << "phiPrev_[n].size(): " << phiPrev_[n].size() << std::endl;
           phiCurr_[M + r] = phiCurr_[M + r] + getBackwardKernels()[r](n) * (phiPrev_[n] + evaluateGradThetaLogVarGamma(M + r, n));
         }
       }
@@ -176,7 +167,6 @@ private:
         }
       }
     }
-//     std::cout << "finished updatePhi()" << std::endl;
   }
   /// Updates the gradient estimates.
   void updateGradients()

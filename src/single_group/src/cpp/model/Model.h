@@ -2,7 +2,7 @@
 /// \brief An abstract model class for time-series models.
 ///
 /// This file contains a class template for an abstract class that 
-/// implementes a generic time-series model
+/// implements a generic time-series model
 
 #ifndef __MODEL_H
 #define __MODEL_H
@@ -61,22 +61,17 @@ public:
   /// Generates synthetic data.
   void simulateData(const unsigned int nObservations, std::vector<LatentVariable>& latentVariables, std::vector<Covariate>& covariates, std::vector<Observation>& observations)
   {
-//         std::cout << "START: simulateData()" << std::endl;
     latentVariables.resize(nObservations);
     observations.resize(nObservations);
-//     std::cout << "Sample from initial distribution:" << std::endl;
     latentVariables[0] = sampleFromInitialDistribution();
-//      std::cout << "Sample from transition equation:" << std::endl;
     for (unsigned int t=1; t<nObservations; t++)
     {
       latentVariables[t] = sampleFromTransitionEquation(t, latentVariables[t-1]);
     }
-//     std::cout << "Sample from observation equation:" << std::endl;
     for (unsigned int t=0; t<nObservations; t++)
     {
       observations[t] = sampleFromObservationEquation(t, latentVariables[t]);
     }
-//     std::cout << "END: simulateData()" << std::endl;
   }
   /// Generates synthetic data.
   void simulateData(const unsigned int nObservations)
