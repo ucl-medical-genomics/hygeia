@@ -234,9 +234,9 @@ process INFER {
 
     stub:
     """
-    mkdir -p chrom_${chrom}_${batch_number}_${inference_seed}
-    touch chrom_${chrom}_${batch_number}_${inference_seed}/dummy_file
-    echo "{chrom} {inference_seed} {batch_number}" > chrom_${chrom}_${batch_number}_${inference_seed}/dummy_file
+    mkdir -p chrom_${chrom}_${batch_index}_${inference_seed}
+    touch chrom_${chrom}_${batch_index}_${inference_seed}/dummy_file
+    echo "{chrom} {inference_seed} {batch_index}" > chrom_${chrom}_${batch_index}_${inference_seed}/dummy_file
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -361,54 +361,57 @@ workflow {
     PREPROCESS(ch_samples, params.cpg_file_path, ch_chroms)
     ESTIMATE_PARAMETERS_AND_REGIMES(PREPROCESS.out)
 
-    GET_CHROM_SEGMENTS(ESTIMATE_PARAMETERS_AND_REGIMES.out, params.batch_size)
+    if ( params.two_group ) {
 
-    // Modify the ch_batch_indexes creation to properly handle file paths
-    ch_batch_indexes = GET_CHROM_SEGMENTS.out
-        .flatMap { chrom, positions_chr, n_total_reads_case_chr, n_total_reads_control_chr,
-                   n_methylated_reads_case_chr, n_methylated_reads_control_chr,
-                   cpg_sites_merged_chr, regime_probabilities_csv,theta_trace_csv,
-                   p_csv, kappa_csv, omega_csv, theta_csv, segments_file ->
-            file(segments_file)
-                .splitCsv(header: true)
-                .collect { row ->
-                    tuple(chrom, positions_chr, n_total_reads_case_chr, n_total_reads_control_chr,
-                            n_methylated_reads_case_chr, n_methylated_reads_control_chr,
-                            cpg_sites_merged_chr, regime_probabilities_csv,theta_trace_csv,
-                            p_csv, kappa_csv, omega_csv, theta_csv, row.chrom, row.segment_index.toInteger())
-                }
-        }
+        GET_CHROM_SEGMENTS(ESTIMATE_PARAMETERS_AND_REGIMES.out, params.batch_size)
 
-    // calculate the number of batches
-    number_of_batches = GET_CHROM_SEGMENTS.out
-        .map { chrom, positions_chr, n_total_reads_case_chr, n_total_reads_control_chr,
-            n_methylated_reads_case_chr, n_methylated_reads_control_chr,
-            cpg_sites_merged_chr, regime_probabilities_csv, theta_trace_csv,
-            p_csv, kappa_csv, omega_csv, theta_csv, segments_file ->
-            // Subtract 2 to exclude the header row and 0 indexing
-            file(segments_file).readLines().size() - 2  
-        }
+        // Modify the ch_batch_indexes creation to properly handle file paths
+        ch_batch_indexes = GET_CHROM_SEGMENTS.out
+            .flatMap { chrom, positions_chr, n_total_reads_case_chr, n_total_reads_control_chr,
+                    n_methylated_reads_case_chr, n_methylated_reads_control_chr,
+                    cpg_sites_merged_chr, regime_probabilities_csv,theta_trace_csv,
+                    p_csv, kappa_csv, omega_csv, theta_csv, segments_file ->
+                file(segments_file)
+                    .splitCsv(header: true)
+                    .collect { row ->
+                        tuple(chrom, positions_chr, n_total_reads_case_chr, n_total_reads_control_chr,
+                                n_methylated_reads_case_chr, n_methylated_reads_control_chr,
+                                cpg_sites_merged_chr, regime_probabilities_csv,theta_trace_csv,
+                                p_csv, kappa_csv, omega_csv, theta_csv, row.chrom, row.segment_index.toInteger())
+                    }
+            }
 
-    INFER(
-        ch_batch_indexes,
-        ch_inference_seeds
-    )
+        // calculate the number of batches
+        number_of_batches = GET_CHROM_SEGMENTS.out
+            .map { _chrom, _positions_chr, _n_total_reads_case_chr, _n_total_reads_control_chr,
+                _n_methylated_reads_case_chr, _n_methylated_reads_control_chr,
+                _cpg_sites_merged_chr, _regime_probabilities_csv, _theta_trace_csv,
+                _p_csv, _kappa_csv, _omega_csv, _theta_csv, segments_file ->
+                // Subtract 2 to exclude the header row and 0 indexing
+                file(segments_file).readLines().size() - 2  
+            }
 
-    INFER.out
-        .groupTuple()
-        .map { r -> tuple(
-            r[0],  // chrom
-            r[1].first(),  // regime_probabilities_csv
-            r[2].first(),  // theta_trace_csv
-            r[3].first(),  // p_csv
-            r[4].first(),  // kappa_csv
-            r[5].first(),  // omega_csv
-            r[6].first(),  // theta_csv
-            r[7],  // infer_out
-            r[8],  // inference_seed
-        )}
-        .set { merged_infer_outputs }
+        INFER(
+            ch_batch_indexes,
+            ch_inference_seeds
+        )
 
-    AGGREGATE_RESULTS(merged_infer_outputs, number_of_batches)
-    GET_DMPS(AGGREGATE_RESULTS.out)
+        INFER.out
+            .groupTuple()
+            .map { r -> tuple(
+                r[0],  // chrom
+                r[1].first(),  // regime_probabilities_csv
+                r[2].first(),  // theta_trace_csv
+                r[3].first(),  // p_csv
+                r[4].first(),  // kappa_csv
+                r[5].first(),  // omega_csv
+                r[6].first(),  // theta_csv
+                r[7],  // infer_out
+                r[8],  // inference_seed
+            )}
+            .set { merged_infer_outputs }
+
+        AGGREGATE_RESULTS(merged_infer_outputs, number_of_batches)
+        GET_DMPS(AGGREGATE_RESULTS.out)
+    }
 }
