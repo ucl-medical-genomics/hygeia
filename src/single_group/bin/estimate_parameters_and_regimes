@@ -37,6 +37,24 @@ parser <- add_argument(
 )
 parser <- add_argument(
   parser,
+  "--p_input_csv_file",
+  help = "path to the p input CSV file"
+)
+parser <- add_argument(
+  parser,
+  "--kappa_input_csv_file",
+  help = "path to the kappa input CSV file (overides the --kappa argument)"
+)
+
+parser <- add_argument(
+  parser,
+  "--omega_input_csv_file",
+  help = "path to the omega input CSV file (overides the --omega argument)"
+)
+
+
+parser <- add_argument(
+  parser,
   "--n_methylated_reads_csv_file",
   help = "path to the n_methylated_reads CSV file"
 )
@@ -199,17 +217,36 @@ source(file = file.path(cmd_args$root_dir, "model_functions.R"), chdir = TRUE)
 # LOAD MODEL PARAMETERS FROM ARGs
 # ============================================================================ #
 u <- cmd_args$u
-kappa <- as.numeric(unlist(strsplit(cmd_args$kappa, ",")))
-omega <- as.numeric(unlist(strsplit(cmd_args$omega, ",")))
+
+# if kappa_input_csv_file is set, then load from the file
+if (!is.null(cmd_args$kappa_input_csv_file)) {
+  kappa <- read_kappa_from_csv_file(file = cmd_args$kappa_input_csv_file)
+} else {
+  kappa <- as.numeric(unlist(strsplit(cmd_args$kappa, ",")))
+}
+
+# if omega_input_csv_file is set, then load from the file
+if (!is.null(cmd_args$omega_input_csv_file)) {
+  omega <- read_omega_from_csv_file(file = cmd_args$omega_input_csv_file)
+} else {
+  omega <- as.numeric(unlist(strsplit(cmd_args$omega, ",")))
+}
 sigma <- as.numeric(unlist(strsplit(cmd_args$sigma, ",")))
 mu <- as.numeric(unlist(strsplit(cmd_args$mu, ",")))
 
-# transition matrix for the regimes:
-p <- matrix(
-  c(rep(c(0, rep(1 / 5, times = length(mu))), times = length(mu) - 1), 0),
-  nrow = length(mu),
-  ncol = length(mu)
-)
+# IF cmd_args$p_input_csv_file is set, then load from the file
+
+if (!is.null(cmd_args$p_input_csv_file)) {
+  p <- read_p_from_csv_file(file = cmd_args$p_input_csv_file)
+} else {
+  # Initial values for p, if not provided via a CSV.
+  # transition matrix for the regimes:
+  p <- matrix(
+    c(rep(c(0, rep(1 / 5, times = length(mu))), times = length(mu) - 1), 0),
+    nrow = length(mu),
+    ncol = length(mu)
+  )
+}
 
 # Ensure the output directories exist
 file_paths <- c(

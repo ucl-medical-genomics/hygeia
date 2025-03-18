@@ -90,27 +90,63 @@ process ESTIMATE_PARAMETERS_AND_REGIMES {
           path("single_group_estimation/theta_${chrom}.csv")
 
     script:
-    """
-    hygeia estimate_parameters_and_regimes \
-        --mu ${params.meteor_mu} \
-        --sigma ${params.meteor_sigma} \
-        --u ${params.min_cpg_sites_between_change_points} \
-        --n_methylated_reads_csv_file ${n_methylated_reads_control_chr} \
-        --genomic_positions_csv_file ${positions_chr} \
-        --n_total_reads_csv_file ${n_total_reads_control_chr} \
-        --regime_probabilities_csv_file single_group_estimation/regimes_${chrom}.csv \
-        --theta_trace_csv_file single_group_estimation/theta_trace_${chrom}.csv \
-        --p_csv_file single_group_estimation/p_${chrom}.csv \
-        --kappa_csv_file single_group_estimation/kappa_${chrom}.csv \
-        --omega_csv_file single_group_estimation/omega_${chrom}.csv \
-        --theta_file single_group_estimation/theta_${chrom}.csv \
-        --estimate_regime_probabilities --estimate_parameters
+    if (params.two_group) {
+        """
+        hygeia estimate_parameters_and_regimes \
+            --mu ${params.meteor_mu} \
+            --sigma ${params.meteor_sigma} \
+            --u ${params.min_cpg_sites_between_change_points} \
+            --n_methylated_reads_csv_file ${n_methylated_reads_control_chr} \
+            --genomic_positions_csv_file ${positions_chr} \
+            --n_total_reads_csv_file ${n_total_reads_control_chr} \
+            --regime_probabilities_csv_file single_group_estimation/regimes_${chrom}.csv \
+            --theta_trace_csv_file single_group_estimation/theta_trace_${chrom}.csv \
+            --p_csv_file single_group_estimation/p_${chrom}.csv \
+            --kappa_csv_file single_group_estimation/kappa_${chrom}.csv \
+            --omega_csv_file single_group_estimation/omega_${chrom}.csv \
+            --theta_file single_group_estimation/theta_${chrom}.csv \
+            --estimate_regime_probabilities --estimate_parameters
 
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        hygeia: \$(hygeia --version | sed 's/hygeia version //g')
-    END_VERSIONS
-    """
+        cat <<-END_VERSIONS > versions.yml
+        "${task.process}":
+            hygeia: \$(hygeia --version | sed 's/hygeia version //g')
+        END_VERSIONS
+        """
+    } else {
+        """
+        hygeia estimate_parameters_and_regimes \
+            --mu ${params.meteor_mu} \
+            --sigma ${params.meteor_sigma} \
+            --u ${params.min_cpg_sites_between_change_points} \
+            --n_methylated_reads_csv_file ${n_methylated_reads_control_chr} \
+            --genomic_positions_csv_file ${positions_chr} \
+            --n_total_reads_csv_file ${n_total_reads_control_chr} \
+            --theta_trace_csv_file single_group_estimation/theta_trace_${chrom}.csv \
+            --p_csv_file single_group_estimation/p_${chrom}.csv \
+            --kappa_csv_file single_group_estimation/kappa_${chrom}.csv \
+            --omega_csv_file single_group_estimation/omega_${chrom}.csv \
+            --theta_file single_group_estimation/theta_${chrom}.csv \
+            --estimate_parameters
+
+        hygeia estimate_parameters_and_regimes \
+            --mu ${params.meteor_mu} \
+            --sigma ${params.meteor_sigma} \
+            --u ${params.min_cpg_sites_between_change_points} \
+            --p_input_csv_file single_group_estimation/p_${chrom}.csv \
+            --kappa_input_csv_file single_group_estimation/kappa_${chrom}.csv \
+            --omega_input_csv_file single_group_estimation/omega_${chrom}.csv \
+            --n_methylated_reads_csv_file ${n_methylated_reads_control_chr} \
+            --genomic_positions_csv_file ${positions_chr} \
+            --n_total_reads_csv_file ${n_total_reads_control_chr} \
+            --regime_probabilities_csv_file single_group_estimation/regimes_${chrom}.csv \
+            --estimate_regime_probabilities
+
+        cat <<-END_VERSIONS > versions.yml
+        "${task.process}":
+            hygeia: \$(hygeia --version | sed 's/hygeia version //g')
+        END_VERSIONS
+        """
+    }
 
     stub:
     """
