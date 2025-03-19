@@ -8,6 +8,7 @@ write_to_csv_file <- function(data, file) {
 
 ## Generalized Function for Reading from CSV
 read_from_csv_file <- function(file, as_matrix = FALSE, transpose = FALSE) {
+  message(paste0("Reading data from file: ", file))
   data <- read_csv(file = file, show_col_types = FALSE)
   if (as_matrix) {
     data <- as.matrix(data)

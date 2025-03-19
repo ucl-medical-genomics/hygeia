@@ -219,14 +219,14 @@ source(file = file.path(cmd_args$root_dir, "model_functions.R"), chdir = TRUE)
 u <- cmd_args$u
 
 # if kappa_input_csv_file is set, then load from the file
-if (!is.null(cmd_args$kappa_input_csv_file)) {
+if (is.character(cmd_args$kappa_input_csv_file) && nzchar(cmd_args$kappa_input_csv_file)) {
   kappa <- read_kappa_from_csv_file(file = cmd_args$kappa_input_csv_file)
 } else {
   kappa <- as.numeric(unlist(strsplit(cmd_args$kappa, ",")))
 }
 
 # if omega_input_csv_file is set, then load from the file
-if (!is.null(cmd_args$omega_input_csv_file)) {
+if (is.character(cmd_args$omega_input_csv_file) && nzchar(cmd_args$omega_input_csv_file)) {
   omega <- read_omega_from_csv_file(file = cmd_args$omega_input_csv_file)
 } else {
   omega <- as.numeric(unlist(strsplit(cmd_args$omega, ",")))
@@ -235,8 +235,7 @@ sigma <- as.numeric(unlist(strsplit(cmd_args$sigma, ",")))
 mu <- as.numeric(unlist(strsplit(cmd_args$mu, ",")))
 
 # IF cmd_args$p_input_csv_file is set, then load from the file
-
-if (!is.null(cmd_args$p_input_csv_file)) {
+if (is.character(cmd_args$p_input_csv_file) && nzchar(cmd_args$p_input_csv_file)) {
   p <- read_p_from_csv_file(file = cmd_args$p_input_csv_file)
 } else {
   # Initial values for p, if not provided via a CSV.

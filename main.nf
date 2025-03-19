@@ -1,8 +1,8 @@
 #!/usr/bin/env nextflow
 
 process PREPROCESS {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.12'
-    publishDir "${params.output_dir}", mode: 'copy'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.14'
+    publishDir "${params.output_dir}/PREPROCESS", mode: 'copy'
 
     memory 16.GB
 
@@ -59,9 +59,9 @@ process PREPROCESS {
     """
 }
 
-process ESTIMATE_PARAMETERS_AND_REGIMES {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.10'
-    publishDir "${params.output_dir}", mode: 'copy', pattern: 'single_group_estimation/*'
+process ESTIMATE_PARAMETERS {
+    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.14'
+    publishDir "${params.output_dir}/ESTIMATE_PARAMETERS", mode: 'copy', pattern: 'single_group_estimation/*'
 
     memory 4.GB
 
@@ -90,63 +90,154 @@ process ESTIMATE_PARAMETERS_AND_REGIMES {
           path("single_group_estimation/theta_${chrom}.csv")
 
     script:
-    if (params.two_group) {
-        """
-        hygeia estimate_parameters_and_regimes \
-            --mu ${params.meteor_mu} \
-            --sigma ${params.meteor_sigma} \
-            --u ${params.min_cpg_sites_between_change_points} \
-            --n_methylated_reads_csv_file ${n_methylated_reads_control_chr} \
-            --genomic_positions_csv_file ${positions_chr} \
-            --n_total_reads_csv_file ${n_total_reads_control_chr} \
-            --regime_probabilities_csv_file single_group_estimation/regimes_${chrom}.csv \
-            --theta_trace_csv_file single_group_estimation/theta_trace_${chrom}.csv \
-            --p_csv_file single_group_estimation/p_${chrom}.csv \
-            --kappa_csv_file single_group_estimation/kappa_${chrom}.csv \
-            --omega_csv_file single_group_estimation/omega_${chrom}.csv \
-            --theta_file single_group_estimation/theta_${chrom}.csv \
-            --estimate_regime_probabilities --estimate_parameters
+    """
+    hygeia estimate_parameters_and_regimes \
+        --mu ${params.meteor_mu} \
+        --sigma ${params.meteor_sigma} \
+        --u ${params.min_cpg_sites_between_change_points} \
+        --n_methylated_reads_csv_file ${n_methylated_reads_control_chr} \
+        --genomic_positions_csv_file ${positions_chr} \
+        --n_total_reads_csv_file ${n_total_reads_control_chr} \
+        --theta_trace_csv_file single_group_estimation/theta_trace_${chrom}.csv \
+        --p_csv_file single_group_estimation/p_${chrom}.csv \
+        --kappa_csv_file single_group_estimation/kappa_${chrom}.csv \
+        --omega_csv_file single_group_estimation/omega_${chrom}.csv \
+        --theta_file single_group_estimation/theta_${chrom}.csv \
+        --estimate_parameters
 
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            hygeia: \$(hygeia --version | sed 's/hygeia version //g')
-        END_VERSIONS
-        """
-    } else {
-        """
-        hygeia estimate_parameters_and_regimes \
-            --mu ${params.meteor_mu} \
-            --sigma ${params.meteor_sigma} \
-            --u ${params.min_cpg_sites_between_change_points} \
-            --n_methylated_reads_csv_file ${n_methylated_reads_control_chr} \
-            --genomic_positions_csv_file ${positions_chr} \
-            --n_total_reads_csv_file ${n_total_reads_control_chr} \
-            --theta_trace_csv_file single_group_estimation/theta_trace_${chrom}.csv \
-            --p_csv_file single_group_estimation/p_${chrom}.csv \
-            --kappa_csv_file single_group_estimation/kappa_${chrom}.csv \
-            --omega_csv_file single_group_estimation/omega_${chrom}.csv \
-            --theta_file single_group_estimation/theta_${chrom}.csv \
-            --estimate_parameters
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        hygeia: \$(hygeia --version | sed 's/hygeia version //g')
+    END_VERSIONS
+    """
 
-        hygeia estimate_parameters_and_regimes \
-            --mu ${params.meteor_mu} \
-            --sigma ${params.meteor_sigma} \
-            --u ${params.min_cpg_sites_between_change_points} \
-            --p_input_csv_file single_group_estimation/p_${chrom}.csv \
-            --kappa_input_csv_file single_group_estimation/kappa_${chrom}.csv \
-            --omega_input_csv_file single_group_estimation/omega_${chrom}.csv \
-            --n_methylated_reads_csv_file ${n_methylated_reads_control_chr} \
-            --genomic_positions_csv_file ${positions_chr} \
-            --n_total_reads_csv_file ${n_total_reads_control_chr} \
-            --regime_probabilities_csv_file single_group_estimation/regimes_${chrom}.csv \
-            --estimate_regime_probabilities
+    stub:
+    """
+    mkdir -p single_group_estimation
+    touch single_group_estimation/regimes_${chrom}.csv
+    touch single_group_estimation/theta_trace_${chrom}.csv
+    touch single_group_estimation/p_${chrom}.csv
+    touch single_group_estimation/kappa_${chrom}.csv
+    touch single_group_estimation/omega_${chrom}.csv
+    touch single_group_estimation/theta_${chrom}.csv
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        hygeia: stub
+    END_VERSIONS
+    """
+}
 
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            hygeia: \$(hygeia --version | sed 's/hygeia version //g')
-        END_VERSIONS
-        """
-    }
+
+process ESTIMATE_REGIMES {
+    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.14'
+    publishDir "${params.output_dir}/ESTIMATE_REGIMES", mode: 'copy', pattern: 'single_group_estimation/*'
+
+    memory 4.GB
+
+    input:
+    tuple val(chrom),
+          path(positions_chr, stageAs: 'preprocessed_data/*'),
+          path(n_total_reads_case_chr, stageAs: 'preprocessed_data/*'),
+          path(n_total_reads_control_chr, stageAs: 'preprocessed_data/*'),
+          path(n_methylated_reads_case_chr, stageAs: 'preprocessed_data/*'),
+          path(n_methylated_reads_control_chr, stageAs: 'preprocessed_data/*'),
+          path(cpg_sites_merged_chr, stageAs: 'preprocessed_data/*'),
+          path(regime_probabilities_csv, stageAs: "single_group_estimation/*"),
+          path(theta_trace_csv, stageAs: "single_group_estimation/*"),
+          path(p_csv, stageAs: "single_group_estimation/*"),
+          path(kappa_csv, stageAs: "single_group_estimation/*"),
+          path(omega_csv, stageAs: "single_group_estimation/*"),
+          path(theta_csv, stageAs: "single_group_estimation/*")
+
+    script:
+    """
+    hygeia estimate_parameters_and_regimes \
+        --mu ${params.meteor_mu} \
+        --sigma ${params.meteor_sigma} \
+        --u ${params.min_cpg_sites_between_change_points} \
+        --p_input_csv_file ${p_csv} \
+        --kappa_input_csv_file ${kappa_csv} \
+        --omega_input_csv_file ${omega_csv} \
+        --n_methylated_reads_csv_file ${n_methylated_reads_control_chr} \
+        --genomic_positions_csv_file ${positions_chr} \
+        --n_total_reads_csv_file ${n_total_reads_control_chr} \
+        --regime_probabilities_csv_file ${regime_probabilities_csv} \
+        --estimate_regime_probabilities
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        hygeia: \$(hygeia --version | sed 's/hygeia version //g')
+    END_VERSIONS
+    """
+
+    stub:
+    """
+    mkdir -p single_group_estimation
+    touch single_group_estimation/regimes_${chrom}.csv
+    touch single_group_estimation/theta_trace_${chrom}.csv
+    touch single_group_estimation/p_${chrom}.csv
+    touch single_group_estimation/kappa_${chrom}.csv
+    touch single_group_estimation/omega_${chrom}.csv
+    touch single_group_estimation/theta_${chrom}.csv
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        hygeia: stub
+    END_VERSIONS
+    """
+}
+
+process ESTIMATE_PARAMETERS_AND_REGIMES {
+    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.14'
+    publishDir "${params.output_dir}/ESTIMATE_PARAMETERS_AND_REGIMES", mode: 'copy', pattern: 'single_group_estimation/*'
+
+    memory 4.GB
+
+    input:
+    tuple val(chrom),
+          path(positions_chr, stageAs: "preprocessed_data/*"),
+          path(n_total_reads_case_chr, stageAs: "preprocessed_data/*"),
+          path(n_total_reads_control_chr, stageAs: "preprocessed_data/*"),
+          path(n_methylated_reads_case_chr, stageAs: "preprocessed_data/*"),
+          path(n_methylated_reads_control_chr, stageAs: "preprocessed_data/*"),
+          path(cpg_sites_merged_chr, stageAs: "preprocessed_data/*")
+
+    output:
+    tuple val(chrom),
+          path(positions_chr),
+          path(n_total_reads_case_chr),
+          path(n_total_reads_control_chr),
+          path(n_methylated_reads_case_chr),
+          path(n_methylated_reads_control_chr),
+          path(cpg_sites_merged_chr),
+          path("single_group_estimation/regimes_${chrom}.csv"),
+          path("single_group_estimation/theta_trace_${chrom}.csv"),
+          path("single_group_estimation/p_${chrom}.csv"),
+          path("single_group_estimation/kappa_${chrom}.csv"),
+          path("single_group_estimation/omega_${chrom}.csv"),
+          path("single_group_estimation/theta_${chrom}.csv")
+
+    script:
+    """
+    hygeia estimate_parameters_and_regimes \
+        --mu ${params.meteor_mu} \
+        --sigma ${params.meteor_sigma} \
+        --u ${params.min_cpg_sites_between_change_points} \
+        --n_methylated_reads_csv_file ${n_methylated_reads_control_chr} \
+        --genomic_positions_csv_file ${positions_chr} \
+        --n_total_reads_csv_file ${n_total_reads_control_chr} \
+        --regime_probabilities_csv_file single_group_estimation/regimes_${chrom}.csv \
+        --theta_trace_csv_file single_group_estimation/theta_trace_${chrom}.csv \
+        --p_csv_file single_group_estimation/p_${chrom}.csv \
+        --kappa_csv_file single_group_estimation/kappa_${chrom}.csv \
+        --omega_csv_file single_group_estimation/omega_${chrom}.csv \
+        --theta_file single_group_estimation/theta_${chrom}.csv \
+        --estimate_regime_probabilities --estimate_parameters
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        hygeia: \$(hygeia --version | sed 's/hygeia version //g')
+    END_VERSIONS
+    """
 
     stub:
     """
@@ -165,8 +256,8 @@ process ESTIMATE_PARAMETERS_AND_REGIMES {
 }
 
 process GET_CHROM_SEGMENTS {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.12'
-    publishDir "${params.output_dir}/chrom_segments", mode: 'copy'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.14'
+    publishDir "${params.output_dir}/GET_CHROM_SEGMENTS", mode: 'copy'
 
     input:
     tuple val(chrom),
@@ -218,8 +309,8 @@ process GET_CHROM_SEGMENTS {
 }
 
 process INFER {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.12'
-    publishDir "${params.output_dir}/two_group_output", mode: 'copy',
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.14'
+    publishDir "${params.output_dir}/INFER", mode: 'copy',
         pattern: "infer_out_${chrom}_${inference_seed}/*"
 
     memory 16.GB
@@ -282,8 +373,8 @@ process INFER {
 }
 
 process AGGREGATE_RESULTS {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.12'
-    publishDir "${params.output_dir}/aggregated", mode: 'copy'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.14'
+    publishDir "${params.output_dir}/AGGREGATE_RESULTS", mode: 'copy'
 
     cpus 4
     memory 24.GB
@@ -348,8 +439,8 @@ process AGGREGATE_RESULTS {
 }
 
 process GET_DMPS {
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.12'
-    publishDir "${params.output_dir}/dmps/", mode: 'copy'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.14'
+    publishDir "${params.output_dir}/GET_DMPS", mode: 'copy'
 
     cpus 4
     memory 24.GB
@@ -395,9 +486,12 @@ workflow {
         .collect()
 
     PREPROCESS(ch_samples, params.cpg_file_path, ch_chroms)
-    ESTIMATE_PARAMETERS_AND_REGIMES(PREPROCESS.out)
 
-    if ( params.two_group ) {
+    if ( !params.two_group ) {
+        ESTIMATE_PARAMETERS(PREPROCESS.out)
+        ESTIMATE_REGIMES(ESTIMATE_PARAMETERS.out)
+    } else {
+        ESTIMATE_PARAMETERS_AND_REGIMES(PREPROCESS.out)
 
         GET_CHROM_SEGMENTS(ESTIMATE_PARAMETERS_AND_REGIMES.out, params.batch_size)
 
