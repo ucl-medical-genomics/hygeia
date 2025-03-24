@@ -82,7 +82,6 @@ process ESTIMATE_PARAMETERS {
           path(n_methylated_reads_case_chr),
           path(n_methylated_reads_control_chr),
           path(cpg_sites_merged_chr),
-          path("single_group_estimation/regimes_${chrom}.csv"),
           path("single_group_estimation/theta_trace_${chrom}.csv"),
           path("single_group_estimation/p_${chrom}.csv"),
           path("single_group_estimation/kappa_${chrom}.csv"),
@@ -142,7 +141,6 @@ process ESTIMATE_REGIMES {
           path(n_methylated_reads_case_chr, stageAs: 'preprocessed_data/*'),
           path(n_methylated_reads_control_chr, stageAs: 'preprocessed_data/*'),
           path(cpg_sites_merged_chr, stageAs: 'preprocessed_data/*'),
-          path(regime_probabilities_csv, stageAs: "single_group_estimation/*"),
           path(theta_trace_csv, stageAs: "single_group_estimation/*"),
           path(p_csv, stageAs: "single_group_estimation/*"),
           path(kappa_csv, stageAs: "single_group_estimation/*"),
@@ -161,7 +159,7 @@ process ESTIMATE_REGIMES {
         --n_methylated_reads_csv_file ${n_methylated_reads_control_chr} \
         --genomic_positions_csv_file ${positions_chr} \
         --n_total_reads_csv_file ${n_total_reads_control_chr} \
-        --regime_probabilities_csv_file ${regime_probabilities_csv} \
+        --regime_probabilities_csv_file single_group_estimation/regimes_${chrom}.csv \
         --estimate_regime_probabilities
 
     cat <<-END_VERSIONS > versions.yml
