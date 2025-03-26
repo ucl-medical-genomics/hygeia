@@ -188,7 +188,7 @@ process ESTIMATE_PARAMETERS_AND_REGIMES {
     container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.14'
     publishDir "${params.output_dir}/ESTIMATE_PARAMETERS_AND_REGIMES", mode: 'copy', pattern: 'single_group_estimation/*'
 
-    memory 4.GB
+    memory 8.GB
 
     input:
     tuple val(chrom),
