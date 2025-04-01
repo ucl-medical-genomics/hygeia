@@ -4,7 +4,7 @@ process PREPROCESS {
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.14'
     publishDir "${params.output_dir}/PREPROCESS", mode: 'copy'
 
-    memory 16.GB
+    memory { 16.GB + (4.GB * task.attempt) }
 
     input:
     tuple val(case_group),
@@ -63,7 +63,7 @@ process ESTIMATE_PARAMETERS {
     container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.14'
     publishDir "${params.output_dir}/ESTIMATE_PARAMETERS", mode: 'copy', pattern: 'single_group_estimation/*'
 
-    memory 4.GB
+    memory { 4.GB * task.attempt }
 
     input:
     tuple val(chrom),
@@ -131,7 +131,7 @@ process ESTIMATE_REGIMES {
     container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.14'
     publishDir "${params.output_dir}/ESTIMATE_REGIMES", mode: 'copy', pattern: 'single_group_estimation/*'
 
-    memory 4.GB
+    memory { 4.GB * task.attempt }
 
     input:
     tuple val(chrom),
@@ -188,7 +188,7 @@ process ESTIMATE_PARAMETERS_AND_REGIMES {
     container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.14'
     publishDir "${params.output_dir}/ESTIMATE_PARAMETERS_AND_REGIMES", mode: 'copy', pattern: 'single_group_estimation/*'
 
-    memory 8.GB
+    memory { 8.GB + (4.GB * task.attempt) }
 
     input:
     tuple val(chrom),
@@ -311,7 +311,7 @@ process INFER {
     publishDir "${params.output_dir}/INFER", mode: 'copy',
         pattern: "infer_out_${chrom}_${inference_seed}/*"
 
-    memory 16.GB
+    memory { 16.GB + (4.GB * task.attempt) }
 
     input:
     tuple val(chrom),
@@ -375,7 +375,7 @@ process AGGREGATE_RESULTS {
     publishDir "${params.output_dir}/AGGREGATE_RESULTS", mode: 'copy'
 
     cpus 4
-    memory 24.GB
+    memory { 24.GB + (4.GB * task.attempt) }
 
     input:
     tuple val(chrom),
@@ -441,7 +441,7 @@ process GET_DMPS {
     publishDir "${params.output_dir}/GET_DMPS", mode: 'copy'
 
     cpus 4
-    memory 24.GB
+    memory { 24.GB + (4.GB * task.attempt) }
 
     input:
     tuple val(chrom),
