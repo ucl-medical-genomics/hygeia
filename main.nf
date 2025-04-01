@@ -1,6 +1,7 @@
 #!/usr/bin/env nextflow
 
 process PREPROCESS {
+    tag "${chrom}"
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.14'
     publishDir "${params.output_dir}/1_PREPROCESS", mode: 'copy', pattern: 'nextflow_output/*', saveAs: { fn -> fn.replace("nextflow_output", "./") }
 
@@ -71,6 +72,7 @@ process PREPROCESS {
 }
 
 process ESTIMATE_PARAMETERS {
+    tag "${chrom}"
     container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.14'
     publishDir "${params.output_dir}/2_ESTIMATE_PARAMETERS", mode: 'copy', pattern: 'nextflow_output/*', saveAs: { fn -> fn.replace("nextflow_output", "./") }
 
@@ -145,6 +147,7 @@ process ESTIMATE_PARAMETERS {
 
 
 process ESTIMATE_REGIMES {
+    tag "${chrom}"
     container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.14'
     publishDir "${params.output_dir}/3_ESTIMATE_REGIMES", mode: 'copy', pattern: 'nextflow_output/*', saveAs: { fn -> fn.replace("nextflow_output", "./") }
 
@@ -215,6 +218,7 @@ process ESTIMATE_REGIMES {
 }
 
 process ESTIMATE_PARAMETERS_AND_REGIMES {
+    tag "${chrom}"
     container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.14'
     publishDir "${params.output_dir}/2_ESTIMATE_PARAMETERS_AND_REGIMES", mode: 'copy', pattern: 'nextflow_output/*', saveAs: { fn -> fn.replace("nextflow_output", "./") }
 
@@ -261,7 +265,7 @@ process ESTIMATE_PARAMETERS_AND_REGIMES {
         --omega_csv_file single_group_estimation/omega_${chrom}.csv \
         --theta_file single_group_estimation/theta_${chrom}.csv \
         --estimate_regime_probabilities --estimate_parameters
-
+    
     # prepare the output directory
     cp -r single_group_estimation nextflow_output
     gzip nextflow_output/regimes_${chrom}.csv
@@ -291,6 +295,7 @@ process ESTIMATE_PARAMETERS_AND_REGIMES {
 }
 
 process GET_CHROM_SEGMENTS {
+    tag "${chrom}"
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.14'
     publishDir "${params.output_dir}/3_GET_CHROM_SEGMENTS", mode: 'copy', pattern: 'nextflow_output/*', saveAs: { fn -> fn.replace("nextflow_output", "./") }
 
@@ -355,6 +360,7 @@ process GET_CHROM_SEGMENTS {
 }
 
 process INFER {
+    tag "${chrom}-${batch_index}-${inference_seed}"
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.14'
     publishDir "${params.output_dir}/4_INFER/${chrom}_${batch_index}_${inference_seed}", mode: 'copy', pattern: 'nextflow_output/*', saveAs: { fn -> fn.replace("nextflow_output", "./") }
 
@@ -423,6 +429,7 @@ process INFER {
 }
 
 process AGGREGATE_RESULTS {
+    tag "${chrom}"
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.14'
     publishDir "${params.output_dir}/5_AGGREGATE_RESULTS", mode: 'copy', pattern: 'nextflow_output/*', saveAs: { fn -> fn.replace("nextflow_output", "./") }
 
@@ -493,6 +500,7 @@ process AGGREGATE_RESULTS {
 }
 
 process GET_DMPS {
+    tag "${chrom}"
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.14'
     publishDir "${params.output_dir}/6_GET_DMPS/${chrom}", mode: 'copy', 
         pattern: 'nextflow_output/*', saveAs: { fn -> fn.replace("nextflow_output", "./") }
