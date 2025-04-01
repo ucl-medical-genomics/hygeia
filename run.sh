@@ -8,6 +8,6 @@ nextflow run ucl-medical-genomics/hygeia \
 
 # Beck Server
 nextflow run main.nf \
-  --cpg_file_path "/scratch/imoghul/hygeia_data/ref/cpg.tsv.gz" \
-  --sample_sheet "/scratch/imoghul/hygeia_data/aging/old/sample_sheet.csv" \
+  --cpg_file_path "/scratch/imoghul/hygeia_data/ref/hg38.cpg_sites.tsv.gz" \
+  --sample_sheet "/scratch/imoghul/hygeia_data/aging/sample_sheet.csv" \
   -resume -with-tower -c nextflow.config --output_dir "out"
