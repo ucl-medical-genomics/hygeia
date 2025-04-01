@@ -29,6 +29,9 @@ case $SCRIPT_NAME in
     get_dmps)
         (python "/hygeia/two_group/get_dmps.py" "$@")
         ;;
+    version)
+        echo ${HYGEIA_VERSION}
+        ;;
     *)
         echo "Invalid script name: $SCRIPT_NAME"
         echo "Valid options are: preprocess, get_chrom_segments, infer, aggregate and get_dmps"

@@ -22,6 +22,9 @@ case $SCRIPT_NAME in
     estimate_parameters_and_regimes)
         estimate_parameters_and_regimes --root_dir "${SRC_DIR}" "$@"
         ;;
+    version)
+        echo ${HYGEIA_VERSION}
+        ;;
     *)
         echo "Invalid script name: $SCRIPT_NAME"
         echo "Valid options are: specify_parameters, simulate_data, estimate_parameters_and_regimes"
