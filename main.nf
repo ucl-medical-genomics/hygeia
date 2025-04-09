@@ -3,7 +3,9 @@
 process PREPROCESS {
     tag "${chrom}"
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.14'
-    publishDir "${params.output_dir}/1_PREPROCESS", mode: 'copy', pattern: 'nextflow_output/*', saveAs: { fn -> fn.replace("nextflow_output", "./") }
+    publishDir "${params.output_dir}/1_PREPROCESS", mode: 'copy',
+        pattern: 'preprocessed_data/*',
+        saveAs: { fn -> fn.replace("preprocessed_data", "./") }
 
     memory { 16.GB + (4.GB * task.attempt) }
 
@@ -19,13 +21,13 @@ process PREPROCESS {
 
     output:
     tuple val(chrom),
-          path("preprocessed_data/positions_${chrom}.txt", arity: '1'),
-          path("preprocessed_data/n_total_reads_case_${chrom}.txt", arity: '1'),
-          path("preprocessed_data/n_total_reads_control_${chrom}.txt", arity: '1'),
-          path("preprocessed_data/n_methylated_reads_case_${chrom}.txt", arity: '1'),
-          path("preprocessed_data/n_methylated_reads_control_${chrom}.txt", arity: '1'),
+          path("preprocessed_data/positions_${chrom}.txt.gz", arity: '1'),
+          path("preprocessed_data/n_total_reads_case_${chrom}.txt.gz", arity: '1'),
+          path("preprocessed_data/n_total_reads_control_${chrom}.txt.gz", arity: '1'),
+          path("preprocessed_data/n_methylated_reads_case_${chrom}.txt.gz", arity: '1'),
+          path("preprocessed_data/n_methylated_reads_control_${chrom}.txt.gz", arity: '1'),
           path("preprocessed_data/cpg_sites_merged_${chrom}.txt", arity: '1'), emit: preprocessed_data
-    path "nextflow_output/*", emit: published_output
+    path "preprocessed_data/*", emit: published_output
 
     script:
     def caseIdArgs = case_ids.collect { "--case_id_names '$it'" }.join(" ")
@@ -38,16 +40,14 @@ process PREPROCESS {
         ${controlFileArgs} --cpg_file_path ${cpg_file_path} \
         --output_path preprocessed_data --chrom ${chrom}
 
-    # prepare the output directory
-    mkdir nextflow_output
-    gzip -c preprocessed_data/positions_${chrom}.txt > nextflow_output/positions_${chrom}.txt.gz
-    gzip -c preprocessed_data/n_total_reads_case_${chrom}.txt > nextflow_output/n_total_reads_case_${chrom}.txt.gz
-    gzip -c preprocessed_data/n_total_reads_control_${chrom}.txt > nextflow_output/n_total_reads_control_${chrom}.txt.gz
-    gzip -c preprocessed_data/n_methylated_reads_case_${chrom}.txt > nextflow_output/n_methylated_reads_case_${chrom}.txt.gz
-    gzip -c preprocessed_data/n_methylated_reads_control_${chrom}.txt > nextflow_output/n_methylated_reads_control_${chrom}.txt.gz
-    cp preprocessed_data/cpg_sites_merged_${chrom}.txt nextflow_output/cpg_sites_merged_${chrom}.txt
+    # compress output files
+    gzip preprocessed_data/positions_${chrom}.txt
+    gzip preprocessed_data/n_total_reads_case_${chrom}.txt
+    gzip preprocessed_data/n_total_reads_control_${chrom}.txt
+    gzip preprocessed_data/n_methylated_reads_case_${chrom}.txt
+    gzip preprocessed_data/n_methylated_reads_control_${chrom}.txt
 
-    cat <<-END_VERSIONS > nextflow_output/versions.yml
+    cat <<-END_VERSIONS > preprocessed_data/versions.yml
     "${task.process}":
         hygeia: \$(hygeia --version | sed 's/hygeia version //g')
     END_VERSIONS
@@ -55,16 +55,15 @@ process PREPROCESS {
 
     stub:
     """
-    mkdir -p preprocessed_data nextflow_output
+    mkdir -p preprocessed_data
     touch preprocessed_data/positions_${chrom}.txt
     touch preprocessed_data/n_total_reads_case_${chrom}.txt
     touch preprocessed_data/n_total_reads_control_${chrom}.txt
     touch preprocessed_data/n_methylated_reads_case_${chrom}.txt
     touch preprocessed_data/n_methylated_reads_control_${chrom}.txt
     touch preprocessed_data/cpg_sites_merged_${chrom}.txt
-    touch nextflow_output/positions_${chrom}.txt.gz
 
-    cat <<-END_VERSIONS > nextflow_output/versions.yml
+    cat <<-END_VERSIONS > preprocessed_data/versions.yml
     "${task.process}":
         hygeia: stub
     END_VERSIONS
