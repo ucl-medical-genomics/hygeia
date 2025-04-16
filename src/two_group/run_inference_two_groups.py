@@ -243,15 +243,15 @@ def main(argv):
   case_control_proposal_mapping = CaseControlProposal(n_methylation_regimes)
 
   #removed buffered states and save
-  np.savetxt(os.path.join(path, 'observations_control.csv'),
+  np.savetxt(os.path.join(path, 'observations_control.csv.gz'),
         observations_control.numpy().astype(np.int16)[return_index], delimiter=',')
-  np.savetxt(os.path.join(path, 'observations_case.csv'),
+  np.savetxt(os.path.join(path, 'observations_case.csv.gz'),
         observations_case.numpy().astype(np.int16)[return_index], delimiter=',')
-  np.savetxt(os.path.join(path, 'n_total_reads_control.csv'),
+  np.savetxt(os.path.join(path, 'n_total_reads_control.csv.gz'),
         n_total_reads_control.numpy().astype(np.int16)[return_index], delimiter=',')
-  np.savetxt(os.path.join(path, 'n_total_reads_case.csv'),
+  np.savetxt(os.path.join(path, 'n_total_reads_case.csv.gz'),
         n_total_reads_case.numpy().astype(np.int16)[return_index], delimiter=',')
-  np.savetxt(os.path.join(path, 'positions.csv'),
+  np.savetxt(os.path.join(path, 'positions.csv.gz'),
         positions.numpy()[return_index], delimiter=',')
 
 
