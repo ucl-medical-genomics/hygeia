@@ -96,13 +96,13 @@ for batch in range(0, FLAGS.num_batches):
         positions_file, sep = ' ', header = None, dtype = np.int64)
     print(f"Read positions data with shape: {positions__.shape}")
     n_total_reads_control__ = pd.read_table(
-        os.path.join(data_dir, 'n_total_reads_control.csv'), sep = ' ', header = None)
+        os.path.join(data_dir, 'n_total_reads_control.csv.gz'), sep = ' ', header = None)
     n_total_reads_case__ = pd.read_table(
-        os.path.join(data_dir, 'n_total_reads_case.csv'), sep = ' ', header = None)
+        os.path.join(data_dir, 'n_total_reads_case.csv.gz'), sep = ' ', header = None)
     observations_control__ = pd.read_table(
-        os.path.join(data_dir, 'observations_control.csv'), sep = ' ', header = None)
+        os.path.join(data_dir, 'observations_control.csv.gz'), sep = ' ', header = None)
     observations_case__ = pd.read_table(
-        os.path.join(data_dir, 'observations_case.csv'), sep = ' ', header = None)
+        os.path.join(data_dir, 'observations_case.csv.gz'), sep = ' ', header = None)
 
     seed_success = 0
     for seed in range(0, FLAGS.seeds):
@@ -165,42 +165,42 @@ positions_chrom = positions_chrom.astype(np.int32)
 control_regimes_chrom = pd.concat(control_regimes_)
 control_regimes_chrom = control_regimes_chrom.set_index(positions_chrom['pos'])
 control_regimes_chrom.to_csv(
-os.path.join(output_dir, 'control_regimes_chrom_{}.csv'.format(chrom)), sep = '\t')
+os.path.join(output_dir, 'control_regimes_chrom_{}.csv.gz'.format(chrom)), sep = '\t', compression="gzip")
 case_regimes_chrom = pd.concat(case_regimes_)
 case_regimes_chrom = case_regimes_chrom.set_index(positions_chrom['pos'])
 case_regimes_chrom.to_csv(
-os.path.join(output_dir, 'case_regimes_chrom_{}.csv'.format(chrom)), sep = '\t')
+os.path.join(output_dir, 'case_regimes_chrom_{}.csv.gz'.format(chrom)), sep = '\t', compression="gzip")
 
 merge_states_chrom = pd.concat(merge_states_)
 merge_states_chrom = merge_states_chrom.set_index(positions_chrom['pos'])
 merge_states_chrom.to_csv(
-os.path.join(output_dir, 'merge_states_chrom_{}.csv'.format(chrom)), sep = '\t')
+os.path.join(output_dir, 'merge_states_chrom_{}.csv.gz'.format(chrom)), sep = '\t', compression="gzip")
 split_probs_chrom = np.mean(merge_states_chrom==0, axis=1)
 split_probs_chrom.to_csv(
-os.path.join(output_dir, 'split_probs_{}.csv'.format(chrom)), sep = '\t')
+os.path.join(output_dir, 'split_probs_{}.csv.gz'.format(chrom)), sep = '\t', compression="gzip")
 
 n_total_reads_control_chrom = pd.concat(n_total_reads_control_).set_index(positions_chrom['pos'])
 n_total_reads_control_chrom.to_csv(
-os.path.join(output_dir, 'n_total_reads_control_chrom_{}.csv'.format(chrom)), sep = '\t')
+os.path.join(output_dir, 'n_total_reads_control_chrom_{}.csv.gz'.format(chrom)), sep = '\t', compression="gzip")
 n_total_reads_case_chrom = pd.concat(n_total_reads_case_).set_index(positions_chrom['pos'])
 n_total_reads_case_chrom.to_csv(
-os.path.join(output_dir, 'n_total_reads_case_chrom_{}.csv'.format(chrom)), sep = '\t')
+os.path.join(output_dir, 'n_total_reads_case_chrom_{}.csv.gz'.format(chrom)), sep = '\t', compression="gzip")
 
 n_meth_reads_control_chrom = pd.concat(observations_control_).set_index(positions_chrom['pos'])
 n_meth_reads_control_chrom.to_csv(
-os.path.join(output_dir, 'n_meth_reads_control_chrom_{}.csv'.format(chrom)), sep = '\t')
+os.path.join(output_dir, 'n_meth_reads_control_chrom_{}.csv.gz'.format(chrom)), sep = '\t', compression="gzip")
 n_meth_reads_case_chrom = pd.concat(observations_case_).set_index(positions_chrom['pos'])
 n_meth_reads_case_chrom.to_csv(
-os.path.join(output_dir, 'n_meth_reads_case_chrom_{}.csv'.format(chrom)), sep = '\t')
+os.path.join(output_dir, 'n_meth_reads_case_chrom_{}.csv.gz'.format(chrom)), sep = '\t', compression="gzip")
 
 control_durations_chrom = pd.concat(control_durations_)
 control_durations_chrom = control_durations_chrom.set_index(positions_chrom['pos'])
 control_durations_chrom.to_csv(
-os.path.join(output_dir, 'control_durations_chrom_{}.csv'.format(chrom)), sep = '\t')
+os.path.join(output_dir, 'control_durations_chrom_{}.csv.gz'.format(chrom)), sep = '\t', compression="gzip")
 case_durations_chrom = pd.concat(case_durations_)
 case_durations_chrom = case_durations_chrom.set_index(positions_chrom['pos'])
 case_durations_chrom.to_csv(
-os.path.join(output_dir, 'case_durations_chrom_{}.csv'.format(chrom)), sep = '\t')
+os.path.join(output_dir, 'case_durations_chrom_{}.csv.gz'.format(chrom)), sep = '\t', compression="gzip")
 
 if FLAGS.compute_freqs:
     case_regimes_freq = case_regimes_chrom.apply(lambda x: x.value_counts(normalize=True), 1)
