@@ -197,7 +197,9 @@ process ESTIMATE_REGIMES {
 process ESTIMATE_PARAMETERS_AND_REGIMES {
     tag "${chrom}"
     container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.15'
-    publishDir "${params.output_dir}/2_ESTIMATE_PARAMETERS_AND_REGIMES", mode: 'copy', pattern: 'nextflow_output/*', saveAs: { fn -> fn.replace("nextflow_output", "./") }
+    publishDir "${params.output_dir}/2_ESTIMATE_PARAMETERS_AND_REGIMES",
+        mode: 'copy', pattern: 'nextflow_output/*',
+        saveAs: { fn -> fn.replace("nextflow_output", "./") }
 
     memory { 8.GB + (4.GB * task.attempt) }
 
@@ -218,13 +220,13 @@ process ESTIMATE_PARAMETERS_AND_REGIMES {
           path(n_methylated_reads_case_chr),
           path(n_methylated_reads_control_chr),
           path(cpg_sites_merged_chr),
-          path("single_group_estimation/regimes_${chrom}.csv"),
-          path("single_group_estimation/theta_trace_${chrom}.csv"),
-          path("single_group_estimation/p_${chrom}.csv"),
-          path("single_group_estimation/kappa_${chrom}.csv"),
-          path("single_group_estimation/omega_${chrom}.csv"),
-          path("single_group_estimation/theta_${chrom}.csv"), emit: single_group_estimation
-    path "nextflow_output/*", emit: published_output
+          path("nextflow_output/regimes_${chrom}.csv.gz"),
+          path("nextflow_output/theta_trace_${chrom}.csv.gz"),
+          path("nextflow_output/p_${chrom}.csv.gz"),
+          path("nextflow_output/kappa_${chrom}.csv.gz"),
+          path("nextflow_output/omega_${chrom}.csv.gz"),
+          path("nextflow_output/theta_${chrom}.csv.gz"), emit: single_group_estimation
+    path "nextflow_output/versions.yml"
 
     script:
     """
@@ -235,19 +237,14 @@ process ESTIMATE_PARAMETERS_AND_REGIMES {
         --n_methylated_reads_csv_file ${n_methylated_reads_control_chr} \
         --genomic_positions_csv_file ${positions_chr} \
         --n_total_reads_csv_file ${n_total_reads_control_chr} \
-        --regime_probabilities_csv_file single_group_estimation/regimes_${chrom}.csv \
-        --theta_trace_csv_file single_group_estimation/theta_trace_${chrom}.csv \
-        --p_csv_file single_group_estimation/p_${chrom}.csv \
-        --kappa_csv_file single_group_estimation/kappa_${chrom}.csv \
-        --omega_csv_file single_group_estimation/omega_${chrom}.csv \
-        --theta_file single_group_estimation/theta_${chrom}.csv \
+        --regime_probabilities_csv_file nextflow_output/regimes_${chrom}.csv.gz \
+        --theta_trace_csv_file nextflow_output/theta_trace_${chrom}.csv.gz \
+        --p_csv_file nextflow_output/p_${chrom}.csv.gz \
+        --kappa_csv_file nextflow_output/kappa_${chrom}.csv.gz \
+        --omega_csv_file nextflow_output/omega_${chrom}.csv.gz \
+        --theta_file nextflow_output/theta_${chrom}.csv.gz \
         --estimate_regime_probabilities --estimate_parameters
     
-    # prepare the output directory
-    cp -r single_group_estimation nextflow_output
-    gzip nextflow_output/regimes_${chrom}.csv
-    gzip nextflow_output/theta_trace_${chrom}.csv
-
     cat <<-END_VERSIONS > nextflow_output/versions.yml
     "${task.process}":
         hygeia: \$(hygeia --version | sed 's/hygeia version //g')
@@ -256,14 +253,13 @@ process ESTIMATE_PARAMETERS_AND_REGIMES {
 
     stub:
     """
-    mkdir -p single_group_estimation
-    touch single_group_estimation/regimes_${chrom}.csv
-    touch single_group_estimation/theta_trace_${chrom}.csv
-    touch single_group_estimation/p_${chrom}.csv
-    touch single_group_estimation/kappa_${chrom}.csv
-    touch single_group_estimation/omega_${chrom}.csv
-    touch single_group_estimation/theta_${chrom}.csv
-    cp -r single_group_estimation nextflow_output
+    mkdir -p nextflow_output
+    touch nextflow_output/regimes_${chrom}.csv.gz
+    touch nextflow_output/theta_trace_${chrom}.csv.gz
+    touch nextflow_output/p_${chrom}.csv.gz
+    touch nextflow_output/kappa_${chrom}.csv.gz
+    touch nextflow_output/omega_${chrom}.csv.gz
+    touch nextflow_output/theta_${chrom}.csv.gz
     cat <<-END_VERSIONS > nextflow_output/versions.yml
     "${task.process}":
         hygeia: stub
@@ -274,7 +270,9 @@ process ESTIMATE_PARAMETERS_AND_REGIMES {
 process GET_CHROM_SEGMENTS {
     tag "${chrom}"
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.15'
-    publishDir "${params.output_dir}/3_GET_CHROM_SEGMENTS", mode: 'copy', pattern: 'nextflow_output/*', saveAs: { fn -> fn.replace("nextflow_output", "./") }
+    publishDir "${params.output_dir}/3_GET_CHROM_SEGMENTS", mode: 'copy',
+        pattern: 'nextflow_output/*',
+        saveAs: { fn -> fn.replace("nextflow_output", "./") }
 
     input:
     tuple val(chrom),
@@ -306,17 +304,14 @@ process GET_CHROM_SEGMENTS {
           path(kappa_csv),
           path(omega_csv),
           path(theta_csv),
-          path("chrom_segments_${chrom}.csv"), emit: segments_files
-    path "nextflow_output/*", emit: published_output
+          path("nextflow_output/chrom_segments_${chrom}.csv"), emit: segments_files
+    path "nextflow_output/versions.yml"
 
     script:
     """
     hygeia get_chrom_segments --input_file ${positions_chr} --chrom ${chrom} \
-        --output_csv chrom_segments_${chrom}.csv --segment_size ${batch_size}
-
-    # prepare the output directory
-    mkdir nextflow_output
-    cp chrom_segments_${chrom}.csv nextflow_output
+        --output_csv nextflow_output/chrom_segments_${chrom}.csv \
+        --segment_size ${batch_size}
 
     cat <<-END_VERSIONS > nextflow_output/versions.yml
     "${task.process}":
@@ -326,9 +321,8 @@ process GET_CHROM_SEGMENTS {
 
     stub:
     """
-    touch chrom_segments_${chrom}.csv
     mkdir -p nextflow_output
-    cp chrom_segments_${chrom}.csv nextflow_output/
+    touch nextflow_output/chrom_segments_${chrom}.csv
     cat <<-END_VERSIONS > nextflow_output/versions.yml
     "${task.process}":
         hygeia: stub
@@ -339,7 +333,9 @@ process GET_CHROM_SEGMENTS {
 process INFER {
     tag "${chrom}-${batch_index}-${inference_seed}"
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.15'
-    publishDir "${params.output_dir}/4_INFER/${chrom}_${batch_index}_${inference_seed}", mode: 'copy', pattern: 'nextflow_output/*', saveAs: { fn -> fn.replace("nextflow_output", "./") }
+    publishDir "${params.output_dir}/4_INFER/${chrom}_${batch_index}_${inference_seed}",
+        mode: 'copy', pattern: 'nextflow_output/*',
+        saveAs: { fn -> fn.replace("nextflow_output", "./") }
 
     memory { 16.GB + (4.GB * task.attempt) }
 
@@ -371,7 +367,7 @@ process INFER {
           path(theta_csv),
           path("chrom_${chrom}_${batch_index}_${inference_seed}"), // two_group_results
           val(inference_seed), emit: infer_out
-    path "nextflow_output/*", emit: published_output
+    path "nextflow_output/*"
 
     script:
     """
@@ -379,8 +375,8 @@ process INFER {
         --chrom ${chrom} --single_group_dir ./single_group_estimation \
         --data_dir ./preprocessed_data \
         --results_dir chrom_${chrom}_${batch_index}_${inference_seed} \
-        --seed ${inference_seed} \
-        --batch ${batch_index} --segment_size ${params.batch_size}
+        --seed ${inference_seed} --batch ${batch_index} \
+        --segment_size ${params.batch_size}
 
     # prepare the output directory
     cp -r chrom_${chrom}_${batch_index}_${inference_seed} nextflow_output
@@ -408,7 +404,9 @@ process INFER {
 process AGGREGATE_RESULTS {
     tag "${chrom}"
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.15'
-    publishDir "${params.output_dir}/5_AGGREGATE_RESULTS", mode: 'copy', pattern: 'nextflow_output/*', saveAs: { fn -> fn.replace("nextflow_output", "./") }
+    publishDir "${params.output_dir}/5_AGGREGATE_RESULTS", mode: 'copy',
+        pattern: 'nextflow_output/*',
+        saveAs: { fn -> fn.replace("nextflow_output", "./") }
 
     cpus 4
     memory { 24.GB + (4.GB * task.attempt) }
@@ -480,7 +478,8 @@ process GET_DMPS {
     tag "${chrom}"
     container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.15'
     publishDir "${params.output_dir}/6_GET_DMPS/${chrom}", mode: 'copy', 
-        pattern: 'nextflow_output/*', saveAs: { fn -> fn.replace("nextflow_output", "./") }
+        pattern: 'nextflow_output/*',
+        saveAs: { fn -> fn.replace("nextflow_output", "./") }
 
     cpus 4
     memory { 24.GB + (4.GB * task.attempt) }
@@ -509,6 +508,7 @@ process GET_DMPS {
     """
     mkdir -p dmps_${chrom}
     touch dmps_${chrom}/dummy_file
+    cp -r dmps_${chrom} nextflow_output
 
     cat <<-END_VERSIONS > nextflow_output/versions.yml
     "${task.process}":
