@@ -109,9 +109,9 @@ cpg_sites_merged=data.shape[0]
 total_cpg_sites_merged += cpg_sites_merged
 print(total_cpg_sites_merged)
 #save data
-np.savetxt(os.path.join(FLAGS.output_path,'positions_{}.txt'.format(chromosome)), positions, delimiter=",")
-np.savetxt(os.path.join(FLAGS.output_path,'n_methylated_reads_control_{}.txt'.format(chromosome)), observations_control, delimiter=",")
-np.savetxt(os.path.join(FLAGS.output_path,'n_methylated_reads_case_{}.txt'.format(chromosome)), observations_case, delimiter=",")
-np.savetxt(os.path.join(FLAGS.output_path,'n_total_reads_control_{}.txt'.format(chromosome)), n_total_reads_control, delimiter=",")
-np.savetxt(os.path.join(FLAGS.output_path,'n_total_reads_case_{}.txt'.format(chromosome)), n_total_reads_case, delimiter=",")
-np.savetxt(os.path.join(FLAGS.output_path,'cpg_sites_merged_{}.txt'.format(chromosome)), [cpg_sites_merged], delimiter=",")
+np.savetxt(os.path.join(FLAGS.output_path,'positions_{}.txt.gz'.format(chromosome)), positions, delimiter=",")
+np.savetxt(os.path.join(FLAGS.output_path,'n_methylated_reads_control_{}.txt.gz'.format(chromosome)), observations_control, delimiter=",")
+np.savetxt(os.path.join(FLAGS.output_path,'n_methylated_reads_case_{}.txt.gz'.format(chromosome)), observations_case, delimiter=",")
+np.savetxt(os.path.join(FLAGS.output_path,'n_total_reads_control_{}.txt.gz'.format(chromosome)), n_total_reads_control, delimiter=",")
+np.savetxt(os.path.join(FLAGS.output_path,'n_total_reads_case_{}.txt.gz'.format(chromosome)), n_total_reads_case, delimiter=",")
+np.savetxt(os.path.join(FLAGS.output_path,'cpg_sites_merged_{}.txt.gz'.format(chromosome)), [cpg_sites_merged], delimiter=",")
