@@ -4,7 +4,7 @@ from absl import flags, app
 flags.DEFINE_string(
     'input_file',
     default='positions.txt',
-    help="Path to the input file containing chromosome position data.")
+    help="Path to the input file (gzipped) containing chromosome position data.")
 flags.DEFINE_integer(
     'chrom',
     default=22,
@@ -24,7 +24,7 @@ def main(argv):
     del argv  # unused
 
     # Load positions for the specified chromosome
-    positions = pd.read_csv(FLAGS.input_file, header=None, names=["position"])
+    positions = pd.read_csv(FLAGS.input_file, header=None, names=["position"], compression="gzip")
     num_positions = len(positions)
 
     # Calculate the number of segments
