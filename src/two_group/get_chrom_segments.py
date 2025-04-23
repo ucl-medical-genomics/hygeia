@@ -1,5 +1,6 @@
 import pandas as pd
 from absl import flags, app
+import os
 
 flags.DEFINE_string(
     'input_file',
@@ -19,6 +20,10 @@ flags.DEFINE_string(
     help="Path to the output CSV file containing segment information.")
 
 FLAGS = flags.FLAGS
+
+output_dir = os.path.dirname(FLAGS.output_csv)
+if output_dir and not os.path.exists(output_dir):
+    os.makedirs(output_dir)
 
 def main(argv):
     del argv  # unused

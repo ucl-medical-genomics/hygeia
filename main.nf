@@ -309,6 +309,7 @@ process GET_CHROM_SEGMENTS {
 
     script:
     """
+    mkdir nextflow_output
     hygeia get_chrom_segments --input_file ${positions_chr} --chrom ${chrom} \
         --output_csv nextflow_output/chrom_segments_${chrom}.csv \
         --segment_size ${batch_size}
