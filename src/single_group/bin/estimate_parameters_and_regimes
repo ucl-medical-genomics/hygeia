@@ -331,6 +331,7 @@ if (cmd_args$estimate_regime_probabilities) {
     matrix(., n_methylation_regimes + 1, length(.) / (n_methylation_regimes + 1)) %>% # automatically calculates n_cpg_sites from object size
     t() %>%
     as_tibble(.name_repair = ~ c("genomic_position", paste0("regime_", 1:n_methylation_regimes))) %>%
+    mutate(across(where(is.numeric), ~ format(., scientific = FALSE))) %>%
     readr::write_csv(
       file = file.path(cmd_args$regime_probabilities_csv_file)
     )
