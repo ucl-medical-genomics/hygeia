@@ -2,7 +2,7 @@
 
 process PREPROCESS {
     tag "${chrom}"
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.17'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.18'
     publishDir "${params.output_dir}/1_PREPROCESS", mode: 'copy',
         pattern: 'nextflow_output/*',
         saveAs: { fn -> fn.replace("nextflow_output", "./") }
@@ -65,7 +65,7 @@ process PREPROCESS {
 
 process ESTIMATE_PARAMETERS {
     tag "${chrom}"
-    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.17'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.18'
     publishDir "${params.output_dir}/2_ESTIMATE_PARAMETERS", mode: 'copy',
         pattern: 'nextflow_output/*',
         saveAs: { fn -> fn.replace("nextflow_output", "./") }
@@ -137,7 +137,7 @@ process ESTIMATE_PARAMETERS {
 
 process ESTIMATE_REGIMES {
     tag "${chrom}"
-    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.17'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.18'
     publishDir "${params.output_dir}/3_ESTIMATE_REGIMES", mode: 'copy',
         pattern: 'nextflow_output/*',
         saveAs: { fn -> fn.replace("nextflow_output", "./") }
@@ -196,7 +196,7 @@ process ESTIMATE_REGIMES {
 
 process ESTIMATE_PARAMETERS_AND_REGIMES {
     tag "${chrom}"
-    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.17'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.18'
     publishDir "${params.output_dir}/2_ESTIMATE_PARAMETERS_AND_REGIMES",
         mode: 'copy', pattern: 'nextflow_output/*',
         saveAs: { fn -> fn.replace("nextflow_output", "./") }
@@ -269,7 +269,7 @@ process ESTIMATE_PARAMETERS_AND_REGIMES {
 
 process GET_CHROM_SEGMENTS {
     tag "${chrom}"
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.17'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.18'
     publishDir "${params.output_dir}/3_GET_CHROM_SEGMENTS", mode: 'copy',
         pattern: 'nextflow_output/*',
         saveAs: { fn -> fn.replace("nextflow_output", "./") }
@@ -333,7 +333,7 @@ process GET_CHROM_SEGMENTS {
 
 process INFER {
     tag "${chrom}-${batch_index}-${inference_seed}"
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.17'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.18'
     publishDir "${params.output_dir}/4_INFER/${chrom}_${batch_index}_${inference_seed}",
         mode: 'copy', pattern: 'nextflow_output/*',
         saveAs: { fn -> fn.replace("nextflow_output", "./") }
@@ -404,7 +404,7 @@ process INFER {
 
 process AGGREGATE_RESULTS {
     tag "${chrom}"
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.17'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.18'
     publishDir "${params.output_dir}/5_AGGREGATE_RESULTS", mode: 'copy',
         pattern: 'nextflow_output/*',
         saveAs: { fn -> fn.replace("nextflow_output", "./") }
@@ -477,7 +477,7 @@ process AGGREGATE_RESULTS {
 
 process GET_DMPS {
     tag "${chrom}"
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.17'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.18'
     publishDir "${params.output_dir}/6_GET_DMPS/${chrom}", mode: 'copy', 
         pattern: 'nextflow_output/*',
         saveAs: { fn -> fn.replace("nextflow_output", "./") }
