@@ -21,10 +21,6 @@ flags.DEFINE_string(
 
 FLAGS = flags.FLAGS
 
-output_dir = os.path.dirname(FLAGS.output_csv)
-if output_dir and not os.path.exists(output_dir):
-    os.makedirs(output_dir)
-
 def main(argv):
     del argv  # unused
 
@@ -37,6 +33,11 @@ def main(argv):
 
     # Generate segment indices for the chromosome
     segments = [{'chrom': FLAGS.chrom, 'segment_index': i} for i in range(0, num_segments)]
+
+    # Make sure the output directory exists
+    output_dir = os.path.dirname(FLAGS.output_csv)
+    if output_dir and not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
     # Save the results to the output CSV
     pd.DataFrame(segments).to_csv(FLAGS.output_csv, index=False)

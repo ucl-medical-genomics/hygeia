@@ -1,0 +1,53 @@
+
+library(data.table)
+library(dplyr)
+library(optparse)
+
+process_single_sample <- function(chr, regimes_file, positions_file, output_file) {
+  chr <- 21
+  positions_file <- '/scratch/imoghul/hygeia/out1/1_PREPROCESS/positions_21.txt.gz'
+  regimes_file <- '/scratch/imoghul/hygeia/out1/3_ESTIMATE_REGIMES/regimes_21.csv.gz'
+
+  positions <- fread(positions_file, header = FALSE)
+  setnames(positions, "V1", "pos")
+  positions[, `:=`(
+    chr = chr,
+    start = pos - 1,  # convert to zero-base
+    end = pos + 1     # end is original position + 1
+  )]
+
+  # Read the regime file
+  regime <- fread(regimes_file)
+  regime_cols <- paste0("meteor_", 1:6)
+
+  # get the maximum value for each row across the meteor columns
+  regime[, max_value := do.call(pmax, .SD), .SDcols = regime_cols]
+
+  # Identify if there are ties (multiple columns with max value)
+  regime[, tie_count := rowSums(.SD == max_value), .SDcols = regime_cols]
+  regime[, highest_regime := ifelse(tie_count > 1, "equiprobable",
+                        regime_cols[max.col(.SD, ties.method = "first")]),
+         .SDcols = regime_cols]
+
+
+
+
+
+  # Combine positions and regime data
+  combined_data <- cbind(positions, regime)
+
+  # Generate bed file
+  bed <- makeBed(combined_data)
+  print("Generated Bed file")
+
+  # Create output directory if it doesn't exist
+  output_dir <- dirname(output_file)
+  if (!dir.exists(file.path(output_dir))) {
+    dir.create(file.path(output_dir), recursive = TRUE)
+  }
+
+  # Save bed file
+  fwrite(bed, output_file, sep = "\t", col.names = FALSE, scipen = 999)
+
+  print(paste0("Saved BED track file to ", output_file))
+}
