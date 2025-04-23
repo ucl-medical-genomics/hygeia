@@ -110,7 +110,9 @@ public:
       for (unsigned int s = 0; s < S; s++)
       {
         t = timeIndicesAux[s];
-        functionalEstimates[t] = functionalEstimatesAux[s];
+        functionalEstimates[t].set_size(functionalEstimatesAux[s].size() + 1);
+        functionalEstimates[t](0) = model_.getCovariates(t).getGenomicPosition();
+        functionalEstimates[t].subvec(1, functionalEstimates[t].size() - 1) = functionalEstimatesAux[s];
       }
     }
   }
