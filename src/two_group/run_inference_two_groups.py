@@ -74,7 +74,7 @@ FLAGS = flags.FLAGS
 
 
 def get_estimated_control_group_param(chromosome, n_methylation_regimes):
-  theta_data = pd.read_table(os.path.join(FLAGS.single_group_dir, 'theta_' + str(chromosome) + '.csv'), sep = ',')
+  theta_data = pd.read_table(os.path.join(FLAGS.single_group_dir, 'theta_' + str(chromosome) + '.csv.gz'), sep = ',')
   #estimated_params = theta_data.to_numpy()[0]
   estimated_params = pd.to_numeric(theta_data['data']).to_numpy()
   p_softmax = np.zeros([n_methylation_regimes, n_methylation_regimes])
@@ -176,19 +176,19 @@ def main(argv):
   #full chromosome data
   positions = pd.read_table(
     os.path.join(data_dir,
-                 'positions_{}.txt'.format(FLAGS.chrom)), sep = ',', header = None)
+                 'positions_{}.txt.gz'.format(FLAGS.chrom)), sep = ',', header = None)
   n_total_reads_control = pd.read_table(
     os.path.join(data_dir,
-                 'n_total_reads_control_{}.txt'.format(FLAGS.chrom)), sep = ',', header = None)
+                 'n_total_reads_control_{}.txt.gz'.format(FLAGS.chrom)), sep = ',', header = None)
   n_methylated_reads_control = pd.read_table(
     os.path.join(data_dir,
-                 'n_methylated_reads_control_{}.txt'.format(FLAGS.chrom)), sep = ',', header = None)
+                 'n_methylated_reads_control_{}.txt.gz'.format(FLAGS.chrom)), sep = ',', header = None)
   n_total_reads_case = pd.read_table(
     os.path.join(data_dir,
-                 'n_total_reads_case_{}.txt'.format(FLAGS.chrom)), sep = ',', header = None)
+                 'n_total_reads_case_{}.txt.gz'.format(FLAGS.chrom)), sep = ',', header = None)
   n_methylated_reads_case = pd.read_table(
     os.path.join(data_dir,
-                 'n_methylated_reads_case_{}.txt'.format(FLAGS.chrom)), sep = ',', header = None)
+                 'n_methylated_reads_case_{}.txt.gz'.format(FLAGS.chrom)), sep = ',', header = None)
 
 
   #Select the segment corresponding to the batch index (if valid, otherwise exit)

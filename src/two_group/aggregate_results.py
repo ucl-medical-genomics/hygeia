@@ -79,9 +79,9 @@ for batch in range(0, FLAGS.num_batches):
         break
 
     # Check for positions.csv file
-    positions_file = os.path.join(data_dir, 'positions.csv')
+    positions_file = os.path.join(data_dir, 'positions.csv.gz')
     if not os.path.isfile(positions_file):
-        print(f"positions.csv not found in {data_dir}")
+        print(f"positions.csv.gz not found in {data_dir}")
         break
 
     print(f"Found positions.csv in batch {batch}")
