@@ -18,7 +18,7 @@ process_single_sample <- function(chr, regimes_file, positions_file, output_file
 
   # Read the regime file
   regime <- fread(regimes_file)
-  regime_cols <- paste0("meteor_", 1:6)
+  regime_cols <- paste0("regime_", 1:6)
 
   # get the maximum value for each row across the meteor columns
   regime[, max_value := do.call(pmax, .SD), .SDcols = regime_cols]
@@ -29,9 +29,9 @@ process_single_sample <- function(chr, regimes_file, positions_file, output_file
                         regime_cols[max.col(.SD, ties.method = "first")]),
          .SDcols = regime_cols]
 
+  regime[, tie_count := NULL]
 
-
-
+  regime <- rbind(regime[1], regime)
 
   # Combine positions and regime data
   combined_data <- cbind(positions, regime)

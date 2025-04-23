@@ -56,9 +56,9 @@ for i in range(n_regimes):
 
 chrom = FLAGS.chrom
 path = FLAGS.results_dir
-control_regimes_ = pd.read_csv(os.path.join(path, 'control_regimes_chrom_{}.csv'.format(chrom)), sep = '\t')
+control_regimes_ = pd.read_csv(os.path.join(path, 'control_regimes_chrom_{}.csv.gz'.format(chrom)), sep = '\t')
 control_regimes_ = (control_regimes_.set_index('pos')).to_numpy()
-case_regimes_ = pd.read_csv(os.path.join(path, 'case_regimes_chrom_{}.csv'.format(chrom)), sep = '\t')
+case_regimes_ = pd.read_csv(os.path.join(path, 'case_regimes_chrom_{}.csv.gz'.format(chrom)), sep = '\t')
 case_regimes_ = (case_regimes_.set_index('pos')).to_numpy()
 num_particles = control_regimes_.shape[-1]
 test_statistics_split.append(
@@ -70,7 +70,7 @@ for i in range(n_regimes):
       test_stats_regimes[(i,j)].append(1 - np.sum((control_regimes_==i) * (case_regimes_==j), axis = 1) / num_particles)
 
 
-split_probs_ = pd.read_csv(os.path.join(path, 'split_probs_{}.csv'.format(chrom)), sep = '\t')
+split_probs_ = pd.read_csv(os.path.join(path, 'split_probs_{}.csv.gz'.format(chrom)), sep = '\t')
 split_probs_ = split_probs_.set_index('pos')
 position_diffs_ = 1/3*(pd.DataFrame(split_probs_.index).diff(1)+pd.DataFrame(
   split_probs_.index).diff(2)+pd.DataFrame(split_probs_.index).diff(3))
