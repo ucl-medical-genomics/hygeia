@@ -65,7 +65,7 @@ process PREPROCESS {
 
 process ESTIMATE_PARAMETERS {
     tag "${chrom}"
-    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.16'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.17'
     publishDir "${params.output_dir}/2_ESTIMATE_PARAMETERS", mode: 'copy',
         pattern: 'nextflow_output/*',
         saveAs: { fn -> fn.replace("nextflow_output", "./") }
@@ -137,7 +137,7 @@ process ESTIMATE_PARAMETERS {
 
 process ESTIMATE_REGIMES {
     tag "${chrom}"
-    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.16'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.17'
     publishDir "${params.output_dir}/3_ESTIMATE_REGIMES", mode: 'copy',
         pattern: 'nextflow_output/*',
         saveAs: { fn -> fn.replace("nextflow_output", "./") }
@@ -196,7 +196,7 @@ process ESTIMATE_REGIMES {
 
 process ESTIMATE_PARAMETERS_AND_REGIMES {
     tag "${chrom}"
-    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.16'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.17'
     publishDir "${params.output_dir}/2_ESTIMATE_PARAMETERS_AND_REGIMES",
         mode: 'copy', pattern: 'nextflow_output/*',
         saveAs: { fn -> fn.replace("nextflow_output", "./") }

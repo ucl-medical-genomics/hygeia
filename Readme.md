@@ -74,13 +74,13 @@ echo $CR_PAT | docker login ghcr.io -u USERNAME --password-stdin
 docker build -t hygeia/single_group src/single_group; \
 docker build -t hygeia/two_group src/two_group;
 
-docker tag hygeia/single_group ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.16; \
+docker tag hygeia/single_group ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.17; \
 docker tag hygeia/single_group ghcr.io/ucl-medical-genomics/hygeia_single_group:latest; \
 docker tag hygeia/two_group ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.17; \
 docker tag hygeia/two_group ghcr.io/ucl-medical-genomics/hygeia_two_group:latest;
 
 docker push ghcr.io/ucl-medical-genomics/hygeia_single_group:latest; \
-docker push ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.16; \
+docker push ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.17; \
 docker push ghcr.io/ucl-medical-genomics/hygeia_two_group:latest; \
 docker push ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.17;
 ```
