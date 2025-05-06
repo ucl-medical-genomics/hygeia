@@ -24,6 +24,9 @@ process ESTIMATE_REGIMES {
           path(theta_csv, stageAs: "single_group_estimation/*")
 
     output:
+    tuple val(chrom),
+          path(positions_chr),
+          path("nextflow_output/regimes_${chrom}.csv.gz", arity: '1'), emit: single_group_regimes
     path "nextflow_output/*"
 
     script:

@@ -3,6 +3,8 @@
 include { PREPROCESS } from './modules/1_preprocess.nf'
 include { ESTIMATE_PARAMETERS } from './modules/2_estimate_parameters.nf'
 include { ESTIMATE_REGIMES } from './modules/3_estimate_regimes.nf'
+include { GENERATE_SINGLE_GROUP_BED_FILES } from './modules/4_generate_single_group_bed_files.nf'
+
 include { ESTIMATE_PARAMETERS_AND_REGIMES } from './modules/4_estimate_parameters_and_regimes.nf'
 include { GET_CHROM_SEGMENTS } from './modules/5_get_chrom_segments.nf'
 include { INFER } from './modules/6_infer.nf'
@@ -24,6 +26,7 @@ workflow {
     if ( !params.two_group ) {
         ESTIMATE_PARAMETERS(PREPROCESS.out.preprocessed_data)
         ESTIMATE_REGIMES(ESTIMATE_PARAMETERS.out.single_group_estimation)
+        GENERATE_SINGLE_GROUP_BED_FILES(ESTIMATE_REGIMES.out.single_group_regimes)
     } else {
         ESTIMATE_PARAMETERS_AND_REGIMES(PREPROCESS.out.preprocessed_data)
 

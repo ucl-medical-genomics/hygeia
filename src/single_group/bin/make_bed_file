@@ -12,7 +12,7 @@ library(argparser)
 p <- arg_parser("Process a single sample to create a BED track file")
 p <- add_argument(p, "chr", help = "Chromosome number (without 'chr' prefix)")
 p <- add_argument(p, "regimes_file", help = "Path to the regimes file for this sample/chr")
-p <- add_argument(p, "positions_file", help = "Path to the positions file for this chr")
+p <- add_argument(p, "genomic_positions_csv_file", help = "Path to the positions file for this chr")
 p <- add_argument(p, "output_file", help = "Path to save the output BED file")
 
 argv <- parse_args(p)
