@@ -26,12 +26,12 @@ process ESTIMATE_PARAMETERS_AND_REGIMES {
           path(n_methylated_reads_case_chr),
           path(n_methylated_reads_control_chr),
           path(cpg_sites_merged_chr),
-          path("nextflow_output/regimes_${chrom}.csv.gz"),
-          path("nextflow_output/theta_trace_${chrom}.csv.gz"),
-          path("nextflow_output/p_${chrom}.csv.gz"),
-          path("nextflow_output/kappa_${chrom}.csv.gz"),
-          path("nextflow_output/omega_${chrom}.csv.gz"),
-          path("nextflow_output/theta_${chrom}.csv.gz"), emit: single_group_estimation
+          path("nextflow_output/regimes_${chrom}.csv.gz", arity: 1),
+          path("nextflow_output/theta_trace_${chrom}.csv.gz", arity: 1),
+          path("nextflow_output/p_${chrom}.csv.gz", arity: 1),
+          path("nextflow_output/kappa_${chrom}.csv.gz", arity: 1),
+          path("nextflow_output/omega_${chrom}.csv.gz", arity: 1),
+          path("nextflow_output/theta_${chrom}.csv.gz", arity: 1), emit: single_group_estimation
     path "nextflow_output/versions.yml"
 
     script:

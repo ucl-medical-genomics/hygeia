@@ -37,7 +37,7 @@ process GET_CHROM_SEGMENTS {
           path(kappa_csv),
           path(omega_csv),
           path(theta_csv),
-          path("nextflow_output/chrom_segments_${chrom}.csv"), emit: segments_files
+          path("nextflow_output/chrom_segments_${chrom}.csv", arity: 1), emit: segments_files
     path "nextflow_output/versions.yml"
 
     script:

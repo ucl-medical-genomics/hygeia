@@ -25,7 +25,7 @@ process ESTIMATE_REGIMES {
 
     output:
     tuple val(chrom),
-          path("nextflow_output/regimes_${chrom}.csv.gz", arity: '1'), emit: single_group_regimes
+          path("nextflow_output/regimes_${chrom}.csv.gz", arity: 1), emit: single_group_regimes
     path "nextflow_output/*"
 
     script:
