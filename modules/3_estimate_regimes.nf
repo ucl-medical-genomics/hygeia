@@ -2,7 +2,7 @@
 
 process ESTIMATE_REGIMES {
     tag "${chrom}"
-    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.21'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group::v0.1.22'
     publishDir "${params.output_dir}/3_ESTIMATE_REGIMES", mode: 'copy',
         pattern: 'nextflow_output/*',
         saveAs: { fn -> fn.replace("nextflow_output", "./") }
@@ -25,7 +25,6 @@ process ESTIMATE_REGIMES {
 
     output:
     tuple val(chrom),
-          path(positions_chr),
           path("nextflow_output/regimes_${chrom}.csv.gz", arity: '1'), emit: single_group_regimes
     path "nextflow_output/*"
 

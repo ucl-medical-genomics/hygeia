@@ -5,11 +5,11 @@ include { ESTIMATE_PARAMETERS } from './modules/2_estimate_parameters.nf'
 include { ESTIMATE_REGIMES } from './modules/3_estimate_regimes.nf'
 include { GENERATE_SINGLE_GROUP_BED_FILES } from './modules/4_generate_single_group_bed_files.nf'
 
-include { ESTIMATE_PARAMETERS_AND_REGIMES } from './modules/4_estimate_parameters_and_regimes.nf'
-include { GET_CHROM_SEGMENTS } from './modules/5_get_chrom_segments.nf'
-include { INFER } from './modules/6_infer.nf'
-include { AGGREGATE_RESULTS } from './modules/7_aggregate_results.nf'
-include { GET_DMPS } from './modules/8_get_dmps.nf'
+include { ESTIMATE_PARAMETERS_AND_REGIMES } from './modules/5_estimate_parameters_and_regimes.nf'
+include { GET_CHROM_SEGMENTS } from './modules/6_get_chrom_segments.nf'
+include { INFER } from './modules/7_infer.nf'
+include { AGGREGATE_RESULTS } from './modules/8_aggregate_results.nf'
+include { GET_DMPS } from './modules/9_get_dmps.nf'
 
 workflow {
     ch_chroms = Channel.of(params.chroms.split(','))

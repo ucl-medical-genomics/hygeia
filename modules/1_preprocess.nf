@@ -2,7 +2,7 @@
 
 process PREPROCESS {
     tag "${chrom}"
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.21'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group::v0.1.22'
     publishDir "${params.output_dir}/1_PREPROCESS", mode: 'copy',
         pattern: 'nextflow_output/*',
         saveAs: { fn -> fn.replace("nextflow_output", "./") }
@@ -21,12 +21,12 @@ process PREPROCESS {
 
     output:
     tuple val(chrom),
-          path("nextflow_output/positions_${chrom}.txt.gz", arity: '1'),
-          path("nextflow_output/n_total_reads_case_${chrom}.txt.gz", arity: '1'),
-          path("nextflow_output/n_total_reads_control_${chrom}.txt.gz", arity: '1'),
-          path("nextflow_output/n_methylated_reads_case_${chrom}.txt.gz", arity: '1'),
-          path("nextflow_output/n_methylated_reads_control_${chrom}.txt.gz", arity: '1'),
-          path("nextflow_output/cpg_sites_merged_${chrom}.txt.gz", arity: '1'), emit: preprocessed_data
+          path("nextflow_output/positions_${chrom}.txt.gz", arity: 1),
+          path("nextflow_output/n_total_reads_case_${chrom}.txt.gz", arity: 1),
+          path("nextflow_output/n_total_reads_control_${chrom}.txt.gz", arity: 1),
+          path("nextflow_output/n_methylated_reads_case_${chrom}.txt.gz", arity: 1),
+          path("nextflow_output/n_methylated_reads_control_${chrom}.txt.gz", arity: 1),
+          path("nextflow_output/cpg_sites_merged_${chrom}.txt.gz", arity: 1), emit: preprocessed_data
     path "nextflow_output/versions.yml"
 
     script:

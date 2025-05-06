@@ -6,5 +6,6 @@ work
 data
 test_data
 result*
+out*
 src/two_group/tabular_linear.*
 src/two_group/run_batched_two_group_model.sh
