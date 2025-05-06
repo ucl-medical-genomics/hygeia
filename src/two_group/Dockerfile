@@ -21,4 +21,4 @@ COPY ./hygeia.docker ./bin/hygeia
 ENV PYTHONPATH=/hygeia/two_group/
 ENV HYGEIA_TWO_GRP_BASE_PATH="/hygeia/two_group/"
 ENV PATH="/hygeia/two_group/bin:${PATH}"
-ENV HYGEIA_VERSION=0.1.14
+ENV HYGEIA_VERSION=0.1.22

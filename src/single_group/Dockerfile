@@ -13,4 +13,4 @@ COPY ./bin ./bin
 COPY hygeia.docker ./bin/hygeia
 ENV PATH="/hygeia/single_group/bin:${PATH}"
 
-ENV HYGEIA_VERSION=0.1.14
+ENV HYGEIA_VERSION=0.1.22
