@@ -2,7 +2,7 @@
 
 process INFER {
     tag "${chrom}-${batch_index}-${inference_seed}"
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.20'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.21'
     publishDir "${params.output_dir}/4_INFER/${chrom}_${batch_index}_${inference_seed}",
         mode: 'copy', pattern: 'nextflow_output/*',
         saveAs: { fn -> fn.replace("nextflow_output", "./") }
