@@ -1,33 +1,57 @@
 #!/bin/bash
 
-# Check if at least one argument is provided
+# Define constants
+SRC_DIR="/hygeia/single_group/src/r"
+VALID_COMMANDS="simulate_data estimate_parameters_and_regimes make_bed_file"
+
+# Show help function
+show_help() {
+    echo "Usage: hygeia [command] [arguments...]"
+    echo ""
+    echo "Available commands:"
+    echo "  simulate_data                     - Simulate data with provided parameters"
+    echo "  estimate_parameters_and_regimes   - Estimate parameters and regimes"
+    echo "  make_bed_file                     - Create a BED file"
+    echo ""
+    echo "Other options:"
+    echo "  version, -v, --version            - Display version information"
+    echo "  help, -h, --help                  - Display this help message"
+}
+
+# Check if no arguments are provided
 if [ "$#" -lt 1 ]; then
-    echo "Usage: hygeia [script] [arguments...]"
+    show_help
     exit 1
 fi
 
-# Get the script name from the first argument
-SCRIPT_NAME=$1
+# Get the command from the first argument
+COMMAND=$1
 
 # Shift the arguments so that $@ contains only the subsequent arguments
 shift
 
-SRC_DIR="/hygeia/single_group/src/r"
-
-# Call the appropriate R script based on the script name
-case $SCRIPT_NAME in
+# Process commands
+case $COMMAND in
     simulate_data)
         simulate_data --root_dir "${SRC_DIR}" "$@"
         ;;
     estimate_parameters_and_regimes)
         estimate_parameters_and_regimes --root_dir "${SRC_DIR}" "$@"
         ;;
-    version)
+    make_bed_file)
+        make_bed_file "$@"
+        ;;
+    version|-v|--version)
         echo ${HYGEIA_VERSION}
         ;;
+    help|-h|--help)
+        show_help
+        exit 0
+        ;;
     *)
-        echo "Invalid script name: $SCRIPT_NAME"
-        echo "Valid options are: specify_parameters, simulate_data, estimate_parameters_and_regimes"
+        echo "Error: Invalid command '$COMMAND'"
+        echo "Valid commands are: $VALID_COMMANDS"
+        echo "Use 'hygeia help' for more information"
         exit 2
         ;;
 esac

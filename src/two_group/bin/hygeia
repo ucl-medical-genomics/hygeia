@@ -1,29 +1,48 @@
 #!/bin/bash
 
-# Check if at least one argument is provided
+# Define valid commands
+VALID_COMMANDS="preprocess get_chrom_segments infer aggregate get_dmps"
+
+# Function to display help
+show_help() {
+    echo "Usage: hygeia [command] [arguments...]"
+    echo ""
+    echo "Available commands:"
+    echo "  preprocess                        - Preprocess data"
+    echo "  get_chrom_segments                - Get chromosome segments"
+    echo "  infer                             - Run inference on two groups"
+    echo "  aggregate                         - Aggregate results"
+    echo "  get_dmps                          - Get DMPs (Differentially Methylated Positions)"
+    echo ""
+    echo "Other options:"
+    echo "  version, -v, --version            - Display version information"
+    echo "  help, -h, --help                  - Display this help message"
+}
+
+# Check if no arguments are provided
 if [ "$#" -lt 1 ]; then
-    echo "Usage: hygeia [script] [arguments...]"
+    show_help
     exit 1
 fi
 
-# Get the script name from the first argument
-SCRIPT_NAME=$1
+# Get the command from the first argument
+COMMAND=$1
 
 # Shift the arguments so that $@ contains only the subsequent arguments
 shift
 
-# Check if HYGEIA_TWO_GRP_BASE_PATH is set
-if [ -z "$HYGEIA_TWO_GRP_BASE_PATH" ]; then
-    # HYGEIA_TWO_GRP_BASE_PATH is not set, use the current way to determine BASE_DIR
+# Determine the base directory
+if [ -z "$HYGEIA_SINGLE_GRP_BASE_PATH" ]; then
+    # Use script location to determine base directory
     SCRIPT_DIR="$(dirname "$(realpath "$0")")"
     BASE_DIR="$(realpath "${SCRIPT_DIR}/../")"
 else
-    # HYGEIA_TWO_GRP_BASE_PATH is set, use its value
-    BASE_DIR="$HYGEIA_TWO_GRP_BASE_PATH"
+    # Use environment variable
+    BASE_DIR="$HYGEIA_SINGLE_GRP_BASE_PATH"
 fi
 
-# Call the appropriate python script based on the script name
-case $SCRIPT_NAME in
+# Process commands
+case $COMMAND in
     preprocess)
         (python "${BASE_DIR}/preprocess_data.py" "$@")
         ;;
@@ -39,12 +58,18 @@ case $SCRIPT_NAME in
     get_dmps)
         (python "${BASE_DIR}/get_dmps.py" "$@")
         ;;
-    version)
-        echo ${HYGEIA_VERSION}
+    version|-v|--version)
+        echo "Hygeia version ${HYGEIA_VERSION}"
+        exit 0
+        ;;
+    help|-h|--help)
+        show_help
+        exit 0
         ;;
     *)
-        echo "Invalid script name: $SCRIPT_NAME"
-        echo "Valid options are: preprocess, get_chrom_segments, infer, aggregate and get_dmps"
+        echo "Error: Invalid command '$COMMAND'"
+        echo "Valid commands are: $VALID_COMMANDS"
+        echo "Use 'hygeia help' for more information"
         exit 2
         ;;
 esac

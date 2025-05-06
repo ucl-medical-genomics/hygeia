@@ -1,40 +1,68 @@
 #!/bin/bash
 
-# Check if at least one argument is provided
+# Define valid commands
+VALID_COMMANDS="preprocess get_chrom_segments infer aggregate get_dmps"
+
+# Define base directory for all scripts
+TWO_GROUP_DIR="/hygeia/two_group"
+
+# Function to display help
+show_help() {
+    echo "Usage: hygeia [command] [arguments...]"
+    echo ""
+    echo "Available commands:"
+    echo "  preprocess                        - Preprocess data"
+    echo "  get_chrom_segments                - Get chromosome segments"
+    echo "  infer                             - Run inference on two groups"
+    echo "  aggregate                         - Aggregate results"
+    echo "  get_dmps                          - Get DMPs (Differentially Methylated Positions)"
+    echo ""
+    echo "Other options:"
+    echo "  version, -v, --version            - Display version information"
+    echo "  help, -h, --help                  - Display this help message"
+}
+
+# Check if no arguments are provided
 if [ "$#" -lt 1 ]; then
-    echo "Usage: hygeia [script] [arguments...]"
+    show_help
     exit 1
 fi
 
-# Get the script name from the first argument
-SCRIPT_NAME=$1
+# Get the command from the first argument
+COMMAND=$1
 
 # Shift the arguments so that $@ contains only the subsequent arguments
 shift
 
-# Call the appropriate python script based on the script name
-case $SCRIPT_NAME in
+# Process commands
+case $COMMAND in
     preprocess)
-        (python "/hygeia/two_group/preprocess_data.py" "$@")
+        (python "${TWO_GROUP_DIR}/preprocess_data.py" "$@")
         ;;
     get_chrom_segments)
-        (python "/hygeia/two_group/get_chrom_segments.py" "$@")
+        (python "${TWO_GROUP_DIR}/get_chrom_segments.py" "$@")
         ;;
     infer)
-        (python "/hygeia/two_group/run_inference_two_groups.py" "$@")
+        (python "${TWO_GROUP_DIR}/run_inference_two_groups.py" "$@")
         ;;
     aggregate)
-        (python "/hygeia/two_group/aggregate_results.py" "$@")
+        (python "${TWO_GROUP_DIR}/aggregate_results.py" "$@")
         ;;
     get_dmps)
-        (python "/hygeia/two_group/get_dmps.py" "$@")
+        (python "${TWO_GROUP_DIR}/get_dmps.py" "$@")
         ;;
-    version)
-        echo ${HYGEIA_VERSION}
+    version|-v|--version)
+        echo "Hygeia version ${HYGEIA_VERSION}"
+        exit 0
+        ;;
+    help|-h|--help)
+        show_help
+        exit 0
         ;;
     *)
-        echo "Invalid script name: $SCRIPT_NAME"
-        echo "Valid options are: preprocess, get_chrom_segments, infer, aggregate and get_dmps"
+        echo "Error: Invalid command '$COMMAND'"
+        echo "Valid commands are: $VALID_COMMANDS"
+        echo "Use 'hygeia help' for more information"
         exit 2
         ;;
 esac
