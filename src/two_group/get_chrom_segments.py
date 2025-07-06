@@ -6,8 +6,8 @@ flags.DEFINE_string(
     'input_file',
     default='positions.txt',
     help="Path to the input file (gzipped) containing chromosome position data.")
-flags.DEFINE_integer(
-    'chrom',
+flags.DEFINE_string(
+    'chromosome',
     default=22,
     help="Chromosome number to process.")
 flags.DEFINE_integer(
@@ -32,7 +32,7 @@ def main(argv):
     num_segments = 1 + num_positions // FLAGS.segment_size
 
     # Generate segment indices for the chromosome
-    segments = [{'chrom': FLAGS.chrom, 'segment_index': i} for i in range(0, num_segments)]
+    segments = [{'chrom': FLAGS.chromosome, 'segment_index': i} for i in range(0, num_segments)]
 
     # Make sure the output directory exists
     output_dir = os.path.dirname(FLAGS.output_csv)

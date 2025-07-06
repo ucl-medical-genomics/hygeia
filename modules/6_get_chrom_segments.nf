@@ -2,7 +2,7 @@
 
 process GET_CHROM_SEGMENTS {
     tag "${chrom}"
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.23'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.24'
     publishDir "${params.output_dir}/3_GET_CHROM_SEGMENTS", mode: 'copy',
         pattern: 'nextflow_output/*',
         saveAs: { fn -> fn.replace("nextflow_output", "./") }
@@ -43,7 +43,7 @@ process GET_CHROM_SEGMENTS {
     script:
     """
     mkdir nextflow_output
-    hygeia get_chrom_segments --input_file ${positions_chr} --chrom ${chrom} \
+    hygeia get_chrom_segments --input_file ${positions_chr} --chromosome ${chrom} \
         --output_csv nextflow_output/chrom_segments_${chrom}.csv \
         --segment_size ${batch_size}
 
