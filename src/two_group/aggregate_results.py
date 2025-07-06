@@ -23,11 +23,11 @@ flags.DEFINE_integer(
     'seeds',
     default=10,
     help="Number of seeds that algorithms have been run.")
-flags.DEFINE_integer(
+flags.DEFINE_string(
     'chrom',
-    default=22,
-    help="Chromosome number to process")
-flags.DEFINE_integer('num_batches', default = 30, 
+    default="22",
+    help="The chromosome to analyze (chr22, or 22, as per input file)")
+flags.DEFINE_integer('num_batches', default = 30,
                      help='maximum number of batches')
 flags.DEFINE_integer("num_particles",
                      default=2400,
@@ -86,11 +86,11 @@ for batch in range(0, FLAGS.num_batches):
 
     print(f"Found positions.csv in batch {batch}")
 
-    merged_states__ = [] 
+    merged_states__ = []
     control_states__ = []
-    case_states__ = [] 
-    control_durations__ = []  
-    case_durations__ = []  
+    case_states__ = []
+    control_durations__ = []
+    case_durations__ = []
 
     positions__ = pd.read_table(
         positions_file, sep = ' ', header = None, dtype = np.int64)
@@ -209,5 +209,3 @@ if FLAGS.compute_freqs:
     control_regimes_freq = control_regimes_chrom.apply(lambda x: x.value_counts(normalize=True), 1)
     control_regimes_freq.to_csv(
         os.path.join(output_dir, 'control_regimes_freq_{}.csv'.format(chrom)), sep = '\t')
-
-

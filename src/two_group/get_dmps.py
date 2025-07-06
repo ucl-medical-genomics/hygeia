@@ -26,9 +26,9 @@ flags.DEFINE_integer(
     'n_regimes',
     default=6,
     help="number of regimes.")
-flags.DEFINE_integer("chrom",
-                      default=22,
-                      help="which chormosome to analyse")
+flags.DEFINE_string("chrom",
+                      default="22",
+                      help="The chromosome to analyze (chr22, or 22, as per input file)")
 
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
@@ -142,5 +142,3 @@ for fdr_threshold in FLAGS.fdr_thresholds:
         dmp = pd.DataFrame({'chrom': dmp_pos[:,1], 'position': dmp_pos[:,0], 'null_stats': dmp_stats})
         dmp['false_negative_weight'] = false_negative_weights[dmp_index]
         dmp.to_csv(os.path.join(output_dir, 'weighted_dmp_{}_{}_{}.csv'.format(i,j,fdr_threshold)), index=False)
-
-

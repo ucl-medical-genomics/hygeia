@@ -43,9 +43,9 @@ flags.DEFINE_integer("num_samples_backward",
 flags.DEFINE_bool("multinomial",
                       default=False,
                       help="multinomial or residual resampling")
-flags.DEFINE_integer("chrom",
-                      default=22,
-                      help="which chormosome to analyse")
+flags.DEFINE_string("chrom",
+                      default="22",
+                      help="The chromosome to analyze (chr22, or 22, as per input file)")
 flags.DEFINE_string(
     'results_dir',
     default=os.path.join(Path(os.getcwd()).parents[0],'test'),
@@ -195,8 +195,8 @@ def main(argv):
   if FLAGS.batch * FLAGS.segment_size > positions.shape[0]:
     print("Batch index is too large for the chromosome")
     sys.exit(0)
-  
-  index= range(max(0, FLAGS.batch * FLAGS.segment_size - FLAGS.buffer_size), 
+
+  index= range(max(0, FLAGS.batch * FLAGS.segment_size - FLAGS.buffer_size),
                 min((FLAGS.batch + 1) * FLAGS.segment_size + FLAGS.buffer_size, positions.shape[0]))
 
   observations_control = tf.convert_to_tensor(n_methylated_reads_control.iloc[index, :], dtype)

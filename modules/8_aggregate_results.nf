@@ -2,7 +2,7 @@
 
 process AGGREGATE_RESULTS {
     tag "${chrom}"
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.23'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.26'
     publishDir "${params.output_dir}/5_AGGREGATE_RESULTS", mode: 'copy',
         pattern: 'nextflow_output/*',
         saveAs: { fn -> fn.replace("nextflow_output", "./") }
