@@ -38,7 +38,7 @@ process PREPROCESS {
     """
     hygeia preprocess ${caseIdArgs} ${caseFileArgs} ${controlIdArgs} \
         ${controlFileArgs} --cpg_file_path ${cpg_file_path} \
-        --output_path nextflow_output --chrom ${chrom}
+        --output_path nextflow_output --chromosome ${chrom}
 
     cat <<-END_VERSIONS > nextflow_output/versions.yml
     "${task.process}":
