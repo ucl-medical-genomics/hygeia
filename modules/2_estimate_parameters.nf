@@ -2,7 +2,7 @@
 
 process ESTIMATE_PARAMETERS {
     tag "${chrom}"
-    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.22'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.23'
     publishDir "${params.output_dir}/2_ESTIMATE_PARAMETERS", mode: 'copy',
         pattern: 'nextflow_output/*',
         saveAs: { fn -> fn.replace("nextflow_output", "./") }

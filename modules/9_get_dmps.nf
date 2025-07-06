@@ -2,8 +2,8 @@
 
 process GET_DMPS {
     tag "${chrom}"
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.22'
-    publishDir "${params.output_dir}/6_GET_DMPS/${chrom}", mode: 'copy', 
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.23'
+    publishDir "${params.output_dir}/6_GET_DMPS/${chrom}", mode: 'copy',
         pattern: 'nextflow_output/*',
         saveAs: { fn -> fn.replace("nextflow_output", "./") }
 
@@ -21,7 +21,7 @@ process GET_DMPS {
     """
     hygeia get_dmps --results_dir aggregated_data --output_dir dmps_${chrom} \
         --chrom ${chrom}
-    
+
     cp -r dmps_${chrom} nextflow_output
 
     cat <<-END_VERSIONS > nextflow_output/versions.yml

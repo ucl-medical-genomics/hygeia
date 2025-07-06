@@ -2,7 +2,7 @@
 
 process PREPROCESS {
     tag "${chrom}"
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.22'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.23'
     publishDir "${params.output_dir}/1_PREPROCESS", mode: 'copy',
         pattern: 'nextflow_output/*',
         saveAs: { fn -> fn.replace("nextflow_output", "./") }

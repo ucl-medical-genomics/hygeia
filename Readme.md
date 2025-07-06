@@ -71,18 +71,21 @@ echo $CR_PAT | docker login ghcr.io -u USERNAME --password-stdin
 2. Build docker image and upload to Github Packages
 
 ```bash
-docker build -t hygeia/single_group src/single_group; \
-docker build -t hygeia/two_group src/two_group;
+VERSION=v0.1.23
+IMAGES=(
+  "hygeia_single_group:src/single_group"
+  "hygeia_two_group:src/two_group"
+)
 
-docker tag hygeia/single_group ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.22; \
-docker tag hygeia/single_group ghcr.io/ucl-medical-genomics/hygeia_single_group:latest; \
-docker tag hygeia/two_group ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.22; \
-docker tag hygeia/two_group ghcr.io/ucl-medical-genomics/hygeia_two_group:latest;
-
-docker push ghcr.io/ucl-medical-genomics/hygeia_single_group:latest; \
-docker push ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.22; \
-docker push ghcr.io/ucl-medical-genomics/hygeia_two_group:latest; \
-docker push ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.22;
+for img in "${IMAGES[@]}"; do
+    d_label=${img%%:*}
+    d_src_path=${img#*:}
+    docker build -t ${d_label} ${d_src_path}
+    docker tag ${d_label} ghcr.io/ucl-medical-genomics/${d_label}:${VERSION}
+    docker tag ${d_label} ghcr.io/ucl-medical-genomics/${d_label}:latest
+    docker push ghcr.io/ucl-medical-genomics/${d_label}:${VERSION}
+    docker push ghcr.io/ucl-medical-genomics/${d_label}:latest
+done
 ```
 
 # Tutorial - Run Single Group analysis with NA12878
@@ -103,4 +106,3 @@ https://www.encodeproject.org/files/ENCFF446HUA/@@download/ENCFF446HUA.bed.gz
 nextflow run ....
 
 ```
-

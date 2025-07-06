@@ -2,7 +2,7 @@
 
 process ESTIMATE_PARAMETERS_AND_REGIMES {
     tag "${chrom}"
-    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.22'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.23'
     publishDir "${params.output_dir}/2_ESTIMATE_PARAMETERS_AND_REGIMES",
         mode: 'copy', pattern: 'nextflow_output/*',
         saveAs: { fn -> fn.replace("nextflow_output", "./") }
@@ -50,7 +50,7 @@ process ESTIMATE_PARAMETERS_AND_REGIMES {
         --omega_csv_file nextflow_output/omega_${chrom}.csv.gz \
         --theta_file nextflow_output/theta_${chrom}.csv.gz \
         --estimate_regime_probabilities --estimate_parameters
-    
+
     cat <<-END_VERSIONS > nextflow_output/versions.yml
     "${task.process}":
         hygeia: \$(hygeia --version | sed 's/hygeia version //g')
