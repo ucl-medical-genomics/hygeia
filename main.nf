@@ -55,7 +55,7 @@ workflow {
                 _cpg_sites_merged_chr, _regime_probabilities_csv, _theta_trace_csv,
                 _p_csv, _kappa_csv, _omega_csv, _theta_csv, segments_file ->
                 // Subtract 2 to exclude the header row and 0 indexing
-                file(segments_file).readLines().size() - 2  
+                file(segments_file).readLines().size() - 2
             }
 
         INFER(

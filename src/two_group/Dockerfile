@@ -7,7 +7,8 @@ WORKDIR /hygeia/two_group
 COPY requirements.txt ./
 RUN pip install -r requirements.txt
 
-COPY preprocess_data.py ./
+COPY preprocess_bed.py ./
+COPY preprocess_gembs.py ./
 COPY run_inference_two_groups.py ./
 COPY aggregate_results.py ./
 COPY get_dmps.py ./

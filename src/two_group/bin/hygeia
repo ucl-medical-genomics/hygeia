@@ -44,7 +44,7 @@ fi
 # Process commands
 case $COMMAND in
     preprocess)
-        (python "${BASE_DIR}/preprocess_data.py" "$@")
+        (python "${BASE_DIR}/preprocess_bed.py" "$@")
         ;;
     get_chrom_segments)
         (python "${BASE_DIR}/get_chrom_segments.py" "$@")

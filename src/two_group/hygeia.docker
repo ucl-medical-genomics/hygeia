@@ -37,7 +37,7 @@ shift
 # Process commands
 case $COMMAND in
     preprocess)
-        (python "${TWO_GROUP_DIR}/preprocess_data.py" "$@")
+        (python "${TWO_GROUP_DIR}/preprocess_bed.py" "$@")
         ;;
     get_chrom_segments)
         (python "${TWO_GROUP_DIR}/get_chrom_segments.py" "$@")
