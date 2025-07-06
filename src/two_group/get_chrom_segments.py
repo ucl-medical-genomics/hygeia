@@ -8,8 +8,8 @@ flags.DEFINE_string(
     help="Path to the input file (gzipped) containing chromosome position data.")
 flags.DEFINE_string(
     'chromosome',
-    default=22,
-    help="Chromosome number to process.")
+    default="22",
+    help="The chromosome to analyze (chr22, or 22, as per input file)")
 flags.DEFINE_integer(
     'segment_size',
     default=100000,

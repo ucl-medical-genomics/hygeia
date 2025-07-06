@@ -2,7 +2,7 @@
 
 process GET_CHROM_SEGMENTS {
     tag "${chrom}"
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.24'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.25'
     publishDir "${params.output_dir}/3_GET_CHROM_SEGMENTS", mode: 'copy',
         pattern: 'nextflow_output/*',
         saveAs: { fn -> fn.replace("nextflow_output", "./") }
