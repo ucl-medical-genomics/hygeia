@@ -27,8 +27,12 @@ flags.DEFINE_integer(
     default=6,
     help="number of regimes.")
 flags.DEFINE_string("chrom",
-                      default="22",
+                      default="21",
                       help="The chromosome to analyze (chr22, or 22, as per input file)")
+flags.DEFINE_bool(
+    'test_regime_combinations',
+    default=False,
+    help="whether to test for each possible regime configuration")
 
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
@@ -56,9 +60,9 @@ for i in range(n_regimes):
 
 chrom = FLAGS.chrom
 path = FLAGS.results_dir
-control_regimes_ = pd.read_csv(os.path.join(path, 'control_regimes_chrom_{}.csv.gz'.format(chrom)), sep = '\t')
+control_regimes_ = pd.read_csv(os.path.join(path, 'control_regimes_chrom_chr{}.csv.gz'.format(chrom)), sep = '\t')
 control_regimes_ = (control_regimes_.set_index('pos')).to_numpy()
-case_regimes_ = pd.read_csv(os.path.join(path, 'case_regimes_chrom_{}.csv.gz'.format(chrom)), sep = '\t')
+case_regimes_ = pd.read_csv(os.path.join(path, 'case_regimes_chrom_chr{}.csv.gz'.format(chrom)), sep = '\t')
 case_regimes_ = (case_regimes_.set_index('pos')).to_numpy()
 num_particles = control_regimes_.shape[-1]
 test_statistics_split.append(
@@ -70,7 +74,7 @@ for i in range(n_regimes):
       test_stats_regimes[(i,j)].append(1 - np.sum((control_regimes_==i) * (case_regimes_==j), axis = 1) / num_particles)
 
 
-split_probs_ = pd.read_csv(os.path.join(path, 'split_probs_{}.csv.gz'.format(chrom)), sep = '\t')
+split_probs_ = pd.read_csv(os.path.join(path, 'split_probs_chr{}.csv.gz'.format(chrom)), sep = '\t')
 split_probs_ = split_probs_.set_index('pos')
 position_diffs_ = 1/3*(pd.DataFrame(split_probs_.index).diff(1)+pd.DataFrame(
   split_probs_.index).diff(2)+pd.DataFrame(split_probs_.index).diff(3))
@@ -90,11 +94,11 @@ for i in range(n_regimes):
 
 #construct weightings
 false_positive_weights = np.ones([position_diffs.shape[0]])
-false_negative_weights = 1.* np.ones_like(position_diffs.to_numpy())
-false_negative_weights[position_diffs < 1000] = 3.
-false_negative_weights[position_diffs < 100] = 10.
-false_negative_weights = np.squeeze(false_negative_weights, -1)
-
+#false_negative_weights = 1.* np.ones_like(position_diffs.to_numpy())
+#false_negative_weights[position_diffs < 1000] = 3.
+#false_negative_weights[position_diffs < 100] = 10.
+#false_negative_weights = np.squeeze(false_negative_weights, -1)
+false_negative_weights = np.squeeze(1./(position_diffs.fillna(1e+5).to_numpy()), -1)
 
 for fdr_threshold in FLAGS.fdr_thresholds:
   #dmp
@@ -104,18 +108,34 @@ for fdr_threshold in FLAGS.fdr_thresholds:
   dmp_pos = positions.to_numpy()[dmp_indicator]
   dmp = pd.DataFrame({'chrom': dmp_pos[:,1], 'position': dmp_pos[:,0], 'null_stats': dmp_stats})
   dmp['false_negative_weight'] = 1.
-  dmp.to_csv(os.path.join(output_dir, 'dmp_{}.csv'.format(fdr_threshold)), index=False)
 
-  for i in range(n_regimes):
-    for j in range(n_regimes):
-      if i != j:
-        k, Qk, threshold = FDR_procedure(test_stats_regimes[(i,j)], fdr_threshold)
-        dmp_indicator = test_stats_regimes[(i,j)] < threshold
-        dmp_stats = test_stats_regimes[(i,j)][dmp_indicator]
-        dmp_pos = positions.to_numpy()[dmp_indicator]
-        dmp = pd.DataFrame({'chrom': dmp_pos[:,1], 'position': dmp_pos[:,0], 'null_stats': dmp_stats})
-        dmp['false_negative_weight'] = 1.
-        dmp.to_csv(os.path.join(output_dir, 'dmp_{}_{}_{}.csv'.format(i,j,fdr_threshold)), index=False)
+  #get regime probs for dmps
+  dmp_control_regimes = np.zeros((dmp_indicator.sum(), FLAGS.n_regimes), dtype=float)
+  dmp_case_regimes = np.zeros((dmp_indicator.sum(), FLAGS.n_regimes), dtype=float)
+  for i, row in enumerate(control_regimes_[dmp_indicator]):
+    freqs =  np.bincount(row, minlength=FLAGS.n_regimes)/row.shape[0]
+    dmp_control_regimes[i] = freqs
+  for i, row in enumerate(case_regimes_[dmp_indicator]):
+    freqs =  np.bincount(row, minlength=FLAGS.n_regimes)/row.shape[0]
+    dmp_case_regimes[i] = freqs
+
+  dmp_control = pd.DataFrame(dmp_control_regimes, columns=['Control_METEOR_{}'.format(i+1) for i in range(FLAGS.n_regimes)])
+  dmp_case = pd.DataFrame(dmp_case_regimes, columns=['Case_METEOR_{}'.format(i+1) for i in range(FLAGS.n_regimes)])
+  dmp = pd.concat([dmp, dmp_control, dmp_case], axis=1)
+  dmp.to_csv(os.path.join(output_dir, 'dmp_{}.csv'.format(fdr_threshold)), index=False, float_format="%.4f")
+
+
+  if FLAGS.test_regime_combinations:
+    for i in range(n_regimes):
+      for j in range(n_regimes):
+        if i != j:
+          k, Qk, threshold = FDR_procedure(test_stats_regimes[(i,j)], fdr_threshold)
+          dmp_indicator = test_stats_regimes[(i,j)] < threshold
+          dmp_stats = test_stats_regimes[(i,j)][dmp_indicator]
+          dmp_pos = positions.to_numpy()[dmp_indicator]
+          dmp = pd.DataFrame({'chrom': dmp_pos[:,1], 'position': dmp_pos[:,0], 'null_stats': dmp_stats})
+          dmp['false_negative_weight'] = 1.
+          dmp.to_csv(os.path.join(output_dir, 'dmp_{}_{}_{}.csv'.format(i,j,fdr_threshold)), index=False)
 
 
 
@@ -128,17 +148,33 @@ for fdr_threshold in FLAGS.fdr_thresholds:
   dmp_pos = positions.to_numpy()[dmp_index]
   dmp = pd.DataFrame({'chrom': dmp_pos[:,1], 'position': dmp_pos[:,0], 'null_stats': dmp_stats})
   dmp['false_negative_weight'] = false_negative_weights[dmp_index]
-  dmp.to_csv(os.path.join(output_dir, 'weighted_dmp_{}.csv'.format(fdr_threshold)), index=False)
 
-  for i in range(n_regimes):
-    for j in range(n_regimes):
-      if i != j:
-        dmp_index, Nk = weighted_FDR_procedure(test_stats_regimes[(i, j)], fdr_threshold = fdr_threshold,
-                                               weights_false_negatives = false_negative_weights,
-                                               weights_false_positives = false_positive_weights)
-        dmp_index = np.sort(dmp_index)
-        dmp_stats = test_stats_regimes[(i, j)][dmp_index]
-        dmp_pos = positions.to_numpy()[dmp_index]
-        dmp = pd.DataFrame({'chrom': dmp_pos[:,1], 'position': dmp_pos[:,0], 'null_stats': dmp_stats})
-        dmp['false_negative_weight'] = false_negative_weights[dmp_index]
-        dmp.to_csv(os.path.join(output_dir, 'weighted_dmp_{}_{}_{}.csv'.format(i,j,fdr_threshold)), index=False)
+  #get regime probs for dmps
+  dmp_control_regimes = np.zeros((dmp_index.shape[0], FLAGS.n_regimes), dtype=float)
+  dmp_case_regimes = np.zeros((dmp_index.shape[0], FLAGS.n_regimes), dtype=float)
+  for i, row in enumerate(control_regimes_[dmp_index]):
+    freqs =  np.bincount(row, minlength=FLAGS.n_regimes)/row.shape[0]
+    dmp_control_regimes[i] = freqs
+  for i, row in enumerate(case_regimes_[dmp_index]):
+    freqs =  np.bincount(row, minlength=FLAGS.n_regimes)/row.shape[0]
+    dmp_case_regimes[i] = freqs
+
+
+  dmp_control = pd.DataFrame(dmp_control_regimes, columns=['Control_METEOR_{}'.format(i+1) for i in range(FLAGS.n_regimes)])
+  dmp_case = pd.DataFrame(dmp_case_regimes, columns=['Case_METEOR_{}'.format(i+1) for i in range(FLAGS.n_regimes)])
+  dmp = pd.concat([dmp, dmp_control, dmp_case], axis=1)
+  dmp.to_csv(os.path.join(output_dir, 'weighted_dmp_{}.csv'.format(fdr_threshold)), index=False, float_format="%.4f")
+
+  if FLAGS.test_regime_combinations:
+    for i in range(n_regimes):
+      for j in range(n_regimes):
+        if i != j:
+          dmp_index, Nk = weighted_FDR_procedure(test_stats_regimes[(i, j)], fdr_threshold = fdr_threshold,
+                                                weights_false_negatives = false_negative_weights,
+                                                weights_false_positives = false_positive_weights)
+          dmp_index = np.sort(dmp_index)
+          dmp_stats = test_stats_regimes[(i, j)][dmp_index]
+          dmp_pos = positions.to_numpy()[dmp_index]
+          dmp = pd.DataFrame({'chrom': dmp_pos[:,1], 'position': dmp_pos[:,0], 'null_stats': dmp_stats})
+          dmp['false_negative_weight'] = false_negative_weights[dmp_index]
+          dmp.to_csv(os.path.join(output_dir, 'weighted_dmp_{}_{}_{}.csv'.format(i,j,fdr_threshold)), index=False)
