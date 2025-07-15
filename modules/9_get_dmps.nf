@@ -2,7 +2,7 @@
 
 process GET_DMPS {
     tag "${chrom}"
-    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.26'
+    container 'ghcr.io/ucl-medical-genomics/hygeia_two_group:v0.1.27'
     publishDir "${params.output_dir}/6_GET_DMPS/${chrom}", mode: 'copy',
         pattern: 'nextflow_output/*',
         saveAs: { fn -> fn.replace("nextflow_output", "./") }
