@@ -301,17 +301,17 @@ def main(argv):
     backward_particles_case_state = backward_simulation_particles['case_state'].numpy()
 
     #removed buffered states and save
-    np.save(os.path.join(path, 'optimal_backward_particles_merged_state_' + str(N) + '_' + str(FLAGS.seed)),
-            backward_particles_merged_state.astype(np.int16)[return_index])
-    np.save(os.path.join(path, 'optimal_backward_particles_control_state_' + str(N) + '_' + str(FLAGS.seed)),
-            backward_particles_control_state.astype(np.int16)[return_index])
-    np.save(os.path.join(path, 'optimal_backward_particles_case_state_' + str(N) + '_' + str(FLAGS.seed)),
-            backward_particles_case_state.astype(np.int16)[return_index])
+    np.savez_compressed(os.path.join(path, 'optimal_backward_particles_merged_state_' + str(N) + '_' + str(FLAGS.seed)),
+                        backward_particles_merged_state.astype(np.int16)[return_index])
+    np.savez_compressed(os.path.join(path, 'optimal_backward_particles_control_state_' + str(N) + '_' + str(FLAGS.seed)),
+                        backward_particles_control_state.astype(np.int16)[return_index])
+    np.savez_compressed(os.path.join(path, 'optimal_backward_particles_case_state_' + str(N) + '_' + str(FLAGS.seed)),
+                        backward_particles_case_state.astype(np.int16)[return_index])
 
-    np.save(os.path.join(path, 'optimal_split_probs_' + str(N) + '_' + str(FLAGS.seed)),
-            split_probs)
-    np.save(os.path.join(path, 'optimal_regime_probs_' + str(N) + '_' + str(FLAGS.seed)),
-            regime_probs)
+    np.savez_compressed(os.path.join(path, 'optimal_split_probs_' + str(N) + '_' + str(FLAGS.seed)),
+                        split_probs)
+    np.savez_compressed(os.path.join(path, 'optimal_regime_probs_' + str(N) + '_' + str(FLAGS.seed)),
+                        regime_probs)
 
   # save data
   with open(os.path.join(path, 'log_normalizing_constants_optimal_' + str(FLAGS.seed) + '.txt'), "w") as f:

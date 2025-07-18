@@ -106,12 +106,15 @@ for batch in range(0, FLAGS.num_batches):
 
     seed_success = 0
     for seed in range(0, FLAGS.seeds):
-        merged_states = np.load(os.path.join(data_dir,
-                                             'optimal_backward_particles_merged_state_{}_{}.npy'.format(N, seed)))
-        control_states = np.load(os.path.join(data_dir,
-                                              'optimal_backward_particles_control_state_{}_{}.npy'.format(N, seed)))
-        case_states = np.load(os.path.join(data_dir,
-                                           'optimal_backward_particles_case_state_{}_{}.npy'.format(N, seed)))
+        merged_states_path = os.path.join(data_dir,
+                                          'optimal_backward_particles_merged_state_{}_{}.npz'.format(N, seed))
+        control_states_path = os.path.join(data_dir,
+                                           'optimal_backward_particles_control_state_{}_{}.npz'.format(N, seed))
+        case_states_path = os.path.join(data_dir,
+                                        'optimal_backward_particles_case_state_{}_{}.npz'.format(N, seed))
+        merged_states = np.load(merged_states_path)['arr_0']
+        control_states = np.load(control_states_path)['arr_0']
+        case_states = np.load(case_states_path)['arr_0']
         merged_states__.append(merged_states)
         control_states__.append(control_states)
         case_states__.append(case_states)
