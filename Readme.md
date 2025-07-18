@@ -71,7 +71,7 @@ echo $CR_PAT | docker login ghcr.io -u USERNAME --password-stdin
 2. Build docker image and upload to Github Packages
 
 ```bash
-VERSION=v0.1.27
+VERSION=v0.1.28
 IMAGES=(
   "hygeia_single_group:src/single_group"
   "hygeia_two_group:src/two_group"
