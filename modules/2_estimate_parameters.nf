@@ -12,18 +12,14 @@ process ESTIMATE_PARAMETERS {
     input:
     tuple val(chrom),
           path(positions_chr, stageAs: "preprocessed_data/*"),
-          path(n_total_reads_case_chr, stageAs: "preprocessed_data/*"),
           path(n_total_reads_control_chr, stageAs: "preprocessed_data/*"),
-          path(n_methylated_reads_case_chr, stageAs: "preprocessed_data/*"),
           path(n_methylated_reads_control_chr, stageAs: "preprocessed_data/*"),
           path(cpg_sites_merged_chr, stageAs: "preprocessed_data/*")
 
     output:
     tuple val(chrom),
           path(positions_chr),
-          path(n_total_reads_case_chr),
           path(n_total_reads_control_chr),
-          path(n_methylated_reads_case_chr),
           path(n_methylated_reads_control_chr),
           path(cpg_sites_merged_chr),
           path("nextflow_output/theta_trace_${chrom}.csv.gz", arity: 1),

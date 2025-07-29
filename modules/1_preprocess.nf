@@ -10,40 +10,27 @@ process PREPROCESS {
     memory { 16.GB + (4.GB * task.attempt) }
 
     input:
-    tuple val(case_group),
-          val(case_ids),
-          path(case_files),
-          val(control_group),
-          val(control_ids),
-          path(control_files)
-    path cpg_file_path
-    val chrom
+    tuple val(chrom),
+          val(sample_name),
+          path(sample_file)
 
     output:
     tuple val(chrom),
           path("nextflow_output/positions_${chrom}.txt.gz", arity: 1),
           path("nextflow_output/n_total_reads_case_${chrom}.txt.gz", arity: 1),
-          path("nextflow_output/n_total_reads_control_${chrom}.txt.gz", arity: 1),
           path("nextflow_output/n_methylated_reads_case_${chrom}.txt.gz", arity: 1),
-          path("nextflow_output/n_methylated_reads_control_${chrom}.txt.gz", arity: 1),
           path("nextflow_output/cpg_sites_merged_${chrom}.txt.gz", arity: 1), emit: preprocessed_data
     path "nextflow_output/versions.yml"
 
     script:
-    def caseIdArgs = case_ids.collect { "--case_id_names '$it'" }.join(" ")
-    def caseFileArgs = case_files.collect { "--case_data_path '$it'" }.join(" ")
-    def controlIdArgs = control_ids.collect { "--control_id_names '$it'" }.join(" ")
-    def controlFileArgs = control_files.collect { "--control_data_path '$it'" }.join(" ")
-
     """
-    hygeia preprocess ${caseIdArgs} ${caseFileArgs} ${controlIdArgs} \
-        ${controlFileArgs} --cpg_file_path ${cpg_file_path} \
-        --output_path nextflow_output --chromosome ${chrom}
+    mkdir -p nextflow_output
+    tail -n +2 ${sample_file} | cut -f 1 | gzip > nextflow_output/positions_${chrom}.txt.gz
+    tail -n +2 ${sample_file} | cut -f 2 | gzip > nextflow_output/n_total_reads_case_${chrom}.txt.gz
+    tail -n +2 ${sample_file} | cut -f 3 | gzip > nextflow_output/n_methylated_reads_case_${chrom}.txt.gz
+    tail -n +2 ${sample_file} | wc -l | gzip > nextflow_output/cpg_sites_merged_${chrom}.txt.gz
 
-    cat <<-END_VERSIONS > nextflow_output/versions.yml
-    "${task.process}":
-        hygeia: \$(hygeia --version | sed 's/hygeia version //g')
-    END_VERSIONS
+    touch nextflow_output/versions.yml
     """
 
     stub:

@@ -12,9 +12,7 @@ process ESTIMATE_REGIMES {
     input:
     tuple val(chrom),
           path(positions_chr, stageAs: 'preprocessed_data/*'),
-          path(n_total_reads_case_chr, stageAs: 'preprocessed_data/*'),
           path(n_total_reads_control_chr, stageAs: 'preprocessed_data/*'),
-          path(n_methylated_reads_case_chr, stageAs: 'preprocessed_data/*'),
           path(n_methylated_reads_control_chr, stageAs: 'preprocessed_data/*'),
           path(cpg_sites_merged_chr, stageAs: 'preprocessed_data/*'),
           path(theta_trace_csv, stageAs: "single_group_estimation/*"),

@@ -12,16 +12,13 @@ include { AGGREGATE_RESULTS } from './modules/8_aggregate_results.nf'
 include { GET_DMPS } from './modules/9_get_dmps.nf'
 
 workflow {
-    ch_chroms = Channel.of(params.chroms.split(','))
     ch_inference_seeds = Channel.of(0..params.num_of_inference_seeds - 1)
     ch_samples = Channel
         .fromPath(params.sample_sheet)
         .splitCsv(header: true, sep: ',', strip: true)
-        .map { row -> tuple(row.group, row.id, row.file) }
-        .groupTuple()
-        .collect()
+        .map { row -> tuple(row.chrom, row.sample_name, row.sample_file) }
 
-    PREPROCESS(ch_samples, params.cpg_file_path, ch_chroms)
+    PREPROCESS(ch_samples)
 
     if ( !params.two_group ) {
         ESTIMATE_PARAMETERS(PREPROCESS.out.preprocessed_data)
