@@ -1,34 +1,45 @@
 #!/usr/bin/env nextflow
 
-include { PREPROCESS } from './modules/1_preprocess.nf'
-include { ESTIMATE_PARAMETERS } from './modules/2_estimate_parameters.nf'
-include { ESTIMATE_REGIMES } from './modules/3_estimate_regimes.nf'
-include { GENERATE_SINGLE_GROUP_BED_FILES } from './modules/4_generate_single_group_bed_files.nf'
+include { SINGLE_GRP_PREPROCESS } from './modules/single_group/1_preprocess.nf'
+include { ESTIMATE_PARAMETERS } from './modules/single_group/2_estimate_parameters.nf'
+include { ESTIMATE_REGIMES } from './modules/single_group/3_estimate_regimes.nf'
+include { GENERATE_SINGLE_GROUP_BED_FILES } from './modules/single_group/4_generate_single_group_bed_files.nf'
 
-include { ESTIMATE_PARAMETERS_AND_REGIMES } from './modules/5_estimate_parameters_and_regimes.nf'
-include { GET_CHROM_SEGMENTS } from './modules/6_get_chrom_segments.nf'
-include { INFER } from './modules/7_infer.nf'
-include { AGGREGATE_RESULTS } from './modules/8_aggregate_results.nf'
-include { GET_DMPS } from './modules/9_get_dmps.nf'
+// TWO group
+include { TWO_GRP_PREPROCESS } from './modules/two_group/1_preprocess.nf'
+include { ESTIMATE_PARAMETERS_AND_REGIMES } from './modules/two_group/2_estimate_parameters_and_regimes.nf'
+include { GET_CHROM_SEGMENTS } from './modules/two_group/3_get_chrom_segments.nf'
+include { INFER } from './modules/two_group/4_infer.nf'
+include { AGGREGATE_RESULTS } from './modules/two_group/5_aggregate_results.nf'
+include { GET_DMPS } from './modules/two_group/6_get_dmps.nf'
 
 workflow {
     ch_chroms = Channel.of(params.chroms.split(','))
     ch_inference_seeds = Channel.of(0..params.num_of_inference_seeds - 1)
-    ch_samples = Channel
-        .fromPath(params.sample_sheet)
-        .splitCsv(header: true, sep: ',', strip: true)
-        .map { row -> tuple(row.group, row.id, row.file) }
-        .groupTuple()
-        .collect()
-
-    PREPROCESS(ch_samples, params.cpg_file_path, ch_chroms)
 
     if ( !params.two_group ) {
-        ESTIMATE_PARAMETERS(PREPROCESS.out.preprocessed_data)
+        ch_samples_chroms = Channel
+            .fromPath(params.sample_sheet)
+            .splitCsv(header: true, sep: ',', strip: true)
+            .map { row -> tuple(row.id, row.file) }
+            .combine(ch_chroms) // Combine samples with chromosomes to run separately for each chrom + chr combination
+
+        SINGLE_GRP_PREPROCESS(ch_samples_chroms, params.cpg_file_path)
+        ESTIMATE_PARAMETERS(SINGLE_GRP_PREPROCESS.out.preprocessed_data)
         ESTIMATE_REGIMES(ESTIMATE_PARAMETERS.out.single_group_estimation)
         GENERATE_SINGLE_GROUP_BED_FILES(ESTIMATE_REGIMES.out.single_group_regimes)
     } else {
-        ESTIMATE_PARAMETERS_AND_REGIMES(PREPROCESS.out.preprocessed_data)
+        // TWO GROUP ANALYSIS
+        ch_samples = Channel
+            .fromPath(params.sample_sheet)
+            .splitCsv(header: true, sep: ',', strip: true)
+            .map { row -> tuple(row.group, row.id, row.file) }
+            .groupTuple()
+            .collect()
+
+        TWO_GRP_PREPROCESS(ch_samples, params.cpg_file_path, ch_chroms)
+
+        ESTIMATE_PARAMETERS_AND_REGIMES(TWO_GRP_PREPROCESS.out.preprocessed_data)
 
         GET_CHROM_SEGMENTS(ESTIMATE_PARAMETERS_AND_REGIMES.out.single_group_estimation, params.batch_size)
 

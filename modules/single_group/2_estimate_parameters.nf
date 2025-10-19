@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 
 process ESTIMATE_PARAMETERS {
-    tag "${chrom}"
+    tag "${case_id}_${chrom}"
     container 'ghcr.io/ucl-medical-genomics/hygeia_single_group:v0.1.27'
     publishDir "${params.output_dir}/2_ESTIMATE_PARAMETERS", mode: 'copy',
         pattern: 'nextflow_output/*',
@@ -10,27 +10,25 @@ process ESTIMATE_PARAMETERS {
     memory { 4.GB * task.attempt }
 
     input:
-    tuple val(chrom),
+    tuple val(case_id),
+          val(chrom),
           path(positions_chr, stageAs: "preprocessed_data/*"),
           path(n_total_reads_case_chr, stageAs: "preprocessed_data/*"),
-          path(n_total_reads_control_chr, stageAs: "preprocessed_data/*"),
           path(n_methylated_reads_case_chr, stageAs: "preprocessed_data/*"),
-          path(n_methylated_reads_control_chr, stageAs: "preprocessed_data/*"),
           path(cpg_sites_merged_chr, stageAs: "preprocessed_data/*")
 
     output:
-    tuple val(chrom),
+    tuple val(case_id),
+          val(chrom),
           path(positions_chr),
           path(n_total_reads_case_chr),
-          path(n_total_reads_control_chr),
           path(n_methylated_reads_case_chr),
-          path(n_methylated_reads_control_chr),
           path(cpg_sites_merged_chr),
-          path("nextflow_output/theta_trace_${chrom}.csv.gz", arity: 1),
-          path("nextflow_output/p_${chrom}.csv.gz", arity: 1),
-          path("nextflow_output/kappa_${chrom}.csv.gz", arity: 1),
-          path("nextflow_output/omega_${chrom}.csv.gz", arity: 1),
-          path("nextflow_output/theta_${chrom}.csv.gz", arity: 1), emit: single_group_estimation
+          path("nextflow_output/${case_id}_theta_trace_${chrom}.csv.gz", arity: 1),
+          path("nextflow_output/${case_id}_p_${chrom}.csv.gz", arity: 1),
+          path("nextflow_output/${case_id}_kappa_${chrom}.csv.gz", arity: 1),
+          path("nextflow_output/${case_id}_omega_${chrom}.csv.gz", arity: 1),
+          path("nextflow_output/${case_id}_theta_${chrom}.csv.gz", arity: 1), emit: single_group_estimation
     path "nextflow_output/versions.yml"
 
     script:
@@ -40,14 +38,14 @@ process ESTIMATE_PARAMETERS {
         --mu ${params.meteor_mu} \
         --sigma ${params.meteor_sigma} \
         --u ${params.min_cpg_sites_between_change_points} \
-        --n_methylated_reads_csv_file ${n_methylated_reads_control_chr} \
+        --n_methylated_reads_csv_file ${n_methylated_reads_case_chr} \
         --genomic_positions_csv_file ${positions_chr} \
-        --n_total_reads_csv_file ${n_total_reads_control_chr} \
-        --theta_trace_csv_file nextflow_output/theta_trace_${chrom}.csv.gz \
-        --p_csv_file nextflow_output/p_${chrom}.csv.gz \
-        --kappa_csv_file nextflow_output/kappa_${chrom}.csv.gz \
-        --omega_csv_file nextflow_output/omega_${chrom}.csv.gz \
-        --theta_file nextflow_output/theta_${chrom}.csv.gz \
+        --n_total_reads_csv_file ${n_total_reads_case_chr} \
+        --theta_trace_csv_file nextflow_output/${case_id}_theta_trace_${chrom}.csv.gz \
+        --p_csv_file nextflow_output/${case_id}_p_${chrom}.csv.gz \
+        --kappa_csv_file nextflow_output/${case_id}_kappa_${chrom}.csv.gz \
+        --omega_csv_file nextflow_output/${case_id}_omega_${chrom}.csv.gz \
+        --theta_file nextflow_output/${case_id}_theta_${chrom}.csv.gz \
         --estimate_parameters
 
     cat <<-END_VERSIONS > nextflow_output/versions.yml
@@ -60,11 +58,11 @@ process ESTIMATE_PARAMETERS {
     """
     mkdir -p nextflow_output
     touch nextflow_output/regimes_${chrom}.csv.gz
-    touch nextflow_output/theta_trace_${chrom}.csv.gz
-    touch nextflow_output/p_${chrom}.csv.gz
-    touch nextflow_output/kappa_${chrom}.csv.gz
-    touch nextflow_output/omega_${chrom}.csv.gz
-    touch nextflow_output/theta_${chrom}.csv.gz
+    touch nextflow_output/${case_id}_theta_trace_${chrom}.csv.gz
+    touch nextflow_output/${case_id}_p_${chrom}.csv.gz
+    touch nextflow_output/${case_id}_kappa_${chrom}.csv.gz
+    touch nextflow_output/${case_id}_omega_${chrom}.csv.gz
+    touch nextflow_output/${case_id}_theta_${chrom}.csv.gz
     cat <<-END_VERSIONS > nextflow_output/versions.yml
     "${task.process}":
         hygeia: stub
