@@ -29,12 +29,12 @@ process SINGLE_GRP_PREPROCESS {
     hygeia preprocess --case_id_names '${case_id}' --case_data_path '${case_file}' \
         --cpg_file_path ${cpg_file_path} --output_path nextflow_output --chromosome ${chrom}
 
-    mv nextflow_output/positions_${chrom}.txt.gz nextflow_output/${case_id}_positions_${chrom}.txt.gz
-    mv nextflow_output/n_total_reads_case_${chrom}.txt.gz nextflow_output/${case_id}_n_total_reads_case_${chrom}.txt.gz
-    mv nextflow_output/n_total_reads_control_${chrom}.txt.gz nextflow_output/${case_id}_n_total_reads_control_${chrom}.txt.gz
-    mv nextflow_output/n_methylated_reads_case_${chrom}.txt.gz nextflow_output/${case_id}_n_methylated_reads_case_${chrom}.txt.gz
-    mv nextflow_output/n_methylated_reads_control_${chrom}.txt.gz nextflow_output/${case_id}_n_methylated_reads_control_${chrom}.txt.gz
-    mv nextflow_output/cpg_sites_merged_${chrom}.txt.gz nextflow_output/${case_id}_cpg_sites_merged_${chrom}.txt.gz
+    mv nextflow_output/${case_id}_positions_${chrom}.txt.gz nextflow_output/${case_id}_positions_${chrom}.txt.gz
+    mv nextflow_output/${case_id}_n_total_reads_case_${chrom}.txt.gz nextflow_output/${case_id}_n_total_reads_case_${chrom}.txt.gz
+    mv nextflow_output/${case_id}_n_total_reads_control_${chrom}.txt.gz nextflow_output/${case_id}_n_total_reads_control_${chrom}.txt.gz
+    mv nextflow_output/${case_id}_n_methylated_reads_case_${chrom}.txt.gz nextflow_output/${case_id}_n_methylated_reads_case_${chrom}.txt.gz
+    mv nextflow_output/${case_id}_n_methylated_reads_control_${chrom}.txt.gz nextflow_output/${case_id}_n_methylated_reads_control_${chrom}.txt.gz
+    mv nextflow_output/${case_id}_cpg_sites_merged_${chrom}.txt.gz nextflow_output/${case_id}_cpg_sites_merged_${chrom}.txt.gz
 
     cat <<-END_VERSIONS > nextflow_output/versions.yml
     "${task.process}":
