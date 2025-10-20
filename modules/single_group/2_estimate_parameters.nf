@@ -9,6 +9,8 @@ process ESTIMATE_PARAMETERS {
 
     memory { 4.GB * task.attempt }
 
+    time { 80.minutes + (10.minutes * task.attempt) }
+
     input:
     tuple val(case_id),
           val(chrom),

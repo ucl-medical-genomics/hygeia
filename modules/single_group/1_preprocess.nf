@@ -9,6 +9,8 @@ process SINGLE_GRP_PREPROCESS {
 
     memory { 16.GB + (4.GB * task.attempt) }
 
+    time { 10.minutes + (10.minutes * task.attempt) }
+
     input:
     tuple val(case_id), path(case_file), val(chrom)
     path cpg_file_path

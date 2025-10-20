@@ -9,6 +9,8 @@ process ESTIMATE_REGIMES {
 
     memory { 4.GB * task.attempt }
 
+    time { 60.minutes + (10.minutes * task.attempt) }
+
     input:
     tuple val(case_id),
           val(chrom),
@@ -23,7 +25,7 @@ process ESTIMATE_REGIMES {
           path(theta_csv, stageAs: "single_group_estimation/*")
 
     output:
-    tuple val(case_id), 
+    tuple val(case_id),
           val(chrom),
           path("nextflow_output/${case_id}_regimes_${chrom}.csv.gz", arity: 1), emit: single_group_regimes
     path "nextflow_output/*"

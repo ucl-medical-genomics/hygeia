@@ -9,6 +9,8 @@ process GENERATE_SINGLE_GROUP_BED_FILES {
 
     memory { 4.GB * task.attempt }
 
+    time { 5.minutes + (10.minutes * task.attempt) }
+
     input:
     tuple val(case_id),
           val(chrom),
